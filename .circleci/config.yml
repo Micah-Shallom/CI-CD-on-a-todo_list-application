@@ -53,5 +53,5 @@ workflows:
       - build-app
       - audit-app
       - deploy-frontend:
-          depends: [build-app, audit-app]
+          requires: [build-app, audit-app]
   
