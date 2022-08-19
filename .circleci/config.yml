@@ -15,15 +15,30 @@ jobs:
           name: Building our application with node
           command: |
             npm install
-            # npm run build
       - save_cache:
           paths: [./node_modules]
           key: application-build
+  audit-app:
+    docker: 
+      - image: circleci/node:13.8.0
+    steps:  
+      - checkout
+      - restore_cache:  
+          keys: [application-build]
+      - run:
+          name: job running security audit on frontend build
+          command: |
+            npm install
+            npm audit fix --audit-level=critical --force
+            npm audit --audit-level=critical
+
+
+
 
 
 workflows:
   my_workflow:
     jobs:
       - build-app
-
+      - audit-app
   
