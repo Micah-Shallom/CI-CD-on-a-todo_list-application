@@ -32,7 +32,7 @@ jobs:
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
   deploy-frontend:
-   docker:
+    docker:
     - image: cimg/node:15.0.1
     steps:
       - checkout
