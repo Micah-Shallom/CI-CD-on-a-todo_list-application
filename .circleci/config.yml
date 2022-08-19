@@ -18,4 +18,10 @@ jobs:
           paths: [./node_modules]
           key: [application-build]
 
+
+workflows:
+  my_workflow:
+    jobs:
+      - build-app
+
   
