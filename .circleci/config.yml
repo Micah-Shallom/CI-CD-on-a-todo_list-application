@@ -6,7 +6,7 @@ orbs:
 jobs:
   build-app:
     docker:
-      - image: circleci/node:13.8.0
+      - image: cimg/node:15.0.1
     steps:
       - checkout
       - restore_cache:
@@ -20,7 +20,7 @@ jobs:
           key: application-build
   audit-app:
     docker: 
-      - image: circleci/node:13.8.0
+      - image: cimg/node:15.0.1
     steps:  
       - checkout
       - restore_cache:  
@@ -31,6 +31,17 @@ jobs:
             npm install
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
+  deploy-frontend:
+   docker:
+    - image: cimg/node:15.0.1
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [application-build]
+      - run:
+          name: checking docker version
+          command: |
+            docker --version
 
 
 
