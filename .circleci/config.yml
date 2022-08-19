@@ -52,4 +52,6 @@ workflows:
     jobs:
       - build-app
       - audit-app
+      - deploy-frontend:
+          depends: [build-app, audit-app]
   
