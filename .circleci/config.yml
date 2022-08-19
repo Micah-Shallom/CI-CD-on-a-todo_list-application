@@ -1,0 +1,21 @@
+version: 2.1
+
+
+jobs:
+  build-app:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [application-build]
+      - run:
+          name: Building our application with node
+          command: |
+            npm install
+            npm run build
+      - save_cache:
+          paths: [./node_modules]
+          key: [application-build]
+
+  
