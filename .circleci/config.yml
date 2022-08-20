@@ -2,7 +2,6 @@ version: 2.1
 description: "Orb to generate a version number from the git history"
 orbs:
   versioning: streamroot/versioning@0.1.1
-  # docsync: streamroot/versioning@1.0.0
 commands: 
   generate:
     parameters:
@@ -36,7 +35,7 @@ commands:
                 echo $VERSION
               fi
             fi
-            echo $VERSION
+            export VERSION=$VERSION
             # echo "export VERSION=$VERSION" >> $BASH_ENV
 
     
@@ -47,6 +46,7 @@ jobs:
     steps:
       - checkout
       - generate
+      - run: echo $VERSION
     
 
 workflows:
