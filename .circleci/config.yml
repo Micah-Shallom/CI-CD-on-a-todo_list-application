@@ -1,23 +1,8 @@
 version: 2.1
 description: "Orb to generate a version number from the git history"
-
-examples:
-  basic_commands:
-    description: |
-      Generate a version number from the git ref
-    usage:
-      version: 2.1
-      orbs:
-        versioning: streamroot/versioning@0.1.1
-        # docsync: streamroot/versioning@1.0.0
-      jobs:
-        build:
-          docker:
-            - image: alpine/git
-          steps:
-            - checkout
-            - versioning/generate
-
+orbs:
+  versioning: streamroot/versioning@0.1.1
+  # docsync: streamroot/versioning@1.0.0
 commands:
   generate:
     parameters:
@@ -48,6 +33,13 @@ commands:
               fi
             fi
             echo "export VERSION=$VERSION" >> $BASH_ENV
+jobs:
+  build:
+    docker:
+      - image: alpine/git
+    steps:
+      - checkout
+      - versioning/generate
 
 
 workflows:
