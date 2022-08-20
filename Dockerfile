@@ -11,6 +11,6 @@ COPY . /home/app
 
 WORKDIR /home/app
 
-RUN ["npm" , "install"]
+CMD ["npm" , "install"]
 
 # CMD ["npm" , "run", "start"]
