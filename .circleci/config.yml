@@ -7,9 +7,9 @@ jobs:
     steps:
     - setup_remote_docker
     - checkout
-    # - run:
-    #     command: docker build -t "mshallom/practicerepo:0.1.0" .
-    #     name: build container
+    - run:
+        command: docker build -t "mshallom/practicerepo:0.1.0" .
+        name: build container
     - anchore/analyze_local_image:
         dockerfile_path: ./Dockerfile
         image_name: mshallom/practicerepo:0.1.0
