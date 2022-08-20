@@ -18,6 +18,7 @@ jobs:
       - save_cache:
           paths: [./node_modules]
           key: application-build
+
   audit-app:
     docker: 
       - image: cimg/node:15.0.1
@@ -31,6 +32,7 @@ jobs:
             npm install
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
+
   deploy-frontend:
     docker:
       - image: docker:17.05.0-ce-git
@@ -55,13 +57,13 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            docker build -t appimage .
+            docker build --cache-from=appimage -t appimage .
             docker images
       - run:
           name: Save Docker image layer cache
           command: |
             mkdir -p /caches
-            docker save -o /caches/app.tar app
+            docker save -o /caches/app.tar appimage
       - save_cache:
           key: v1-{{ .Branch }}-{{ epoch }}
           paths:
