@@ -12,7 +12,14 @@ commands:
         type: string
         default: ^main$
 
+    
+jobs:
+  build:
+    docker:
+      - image: alpine/git
     steps:
+      - checkout
+      - versioning/generate
       - run:
           name: "Add `VERSION` environment variable to `BASH_ENV`"
           command: |
@@ -28,18 +35,13 @@ commands:
 
               if [[ "$CIRCLE_BRANCH" =~ <<parameters.rc_branch>> ]]; then
                 VERSION="$MAJOR.$((MINOR+1)).0-rc-$SHA"
+                echo $VERSION
               else
                 VERSION="$MAJOR.$((MINOR+1)).0-beta-$SHA"
+                echo $VERSION
               fi
             fi
             echo "export VERSION=$VERSION" >> $BASH_ENV
-jobs:
-  build:
-    docker:
-      - image: alpine/git
-    steps:
-      - checkout
-      - versioning/generate
 
 
 workflows:
