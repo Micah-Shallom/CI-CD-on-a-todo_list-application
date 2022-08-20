@@ -15,12 +15,13 @@ jobs:
           docker_layer_caching: true
 
       # build and push Docker image
-      # using circle_build_num for semantic versioning
+      # using circle_build_num for dummy semantic versioning
       - run: |
           TAG=0.1.$CIRCLE_BUILD_NUM
           docker build -t mshallom/practicerepo:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push mshallom/practicerepo:$TAG
+          docker-compose -f docker-compose.yaml -d up
 
 workflows:
   new-workflow:
