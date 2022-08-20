@@ -109,7 +109,7 @@ jobs:
       - run:
           name: Push image to dockerhub registry
           command: |
-            docker push mshallom/practicerepo:$TAG
+            docker push mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
       - run:
           name: Running docker compose which runs container for app, and database
           command: |
