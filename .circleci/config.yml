@@ -57,10 +57,10 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
+            docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}
             docker build --cache-from=appimage -t appimage .
             docker tag appimage:latest mshallom/appimage:0.0.1
-            docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}
-            docker push mshallom/appimage:0.0.1
+            # docker push mshallom/appimage:0.0.1
       - run:
           name: Save Docker image layer cache
           command: |
