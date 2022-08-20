@@ -36,9 +36,6 @@ jobs:
   deploy-frontend:
     docker:
       - image: docker:17.05.0-ce-git
-        auth:
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD
     steps:  
       - checkout
       - setup_remote_docker
@@ -62,6 +59,7 @@ jobs:
           command: |
             docker build --cache-from=appimage -t appimage .
             docker tag appimage:latest mshallom/appimage:0.0.1
+            docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}
             docker push mshallom/appimage:0.0.1
       - run:
           name: Save Docker image layer cache
