@@ -27,10 +27,12 @@ commands:
               PATCH="${VERSION%%.*}"; VERSION="${VERSION#*.}"
 
               if [[ "$CIRCLE_BRANCH" =~ <<parameters.rc_branch>> ]]; then
-                VERSION="$MAJOR.$((MINOR+1)).0-rc-$SHA"
+                # VERSION="$MAJOR.$((MINOR+1)).0-rc-$SHA"
+                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
                 echo $VERSION
               else
-                VERSION="$MAJOR.$((MINOR+1)).0-beta-$SHA"
+                # VERSION="$MAJOR.$((MINOR+1)).0-beta-$SHA"
+                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
                 echo $VERSION
               fi
             fi
