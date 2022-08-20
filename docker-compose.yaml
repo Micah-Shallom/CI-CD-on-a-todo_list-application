@@ -1,7 +1,7 @@
 version: '3'
 services:
   my-app:
-      image: test-app
+      image: mshallom/appimage
       ports:
         - 5000:5000
       
