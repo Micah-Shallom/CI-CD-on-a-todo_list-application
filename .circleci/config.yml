@@ -115,14 +115,14 @@ jobs:
       #     name: Running vulnerability scan on image before remote registry deployment
       #     command: |
       - anchore/analyze_local_image:
-        dockerfile_path: ./Dockerfile
-        image_name: mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
-        policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
-        policy_failure: true
-        timeout: "500"
-    - anchore/parse_reports
-    - store_artifacts:
-        path: anchore-reports
+          dockerfile_path: ./Dockerfile
+          image_name: mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
+          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
+          policy_failure: true
+          timeout: "500"
+      - anchore/parse_reports
+      - store_artifacts:
+          path: anchore-reports
 
       - run:
           name: Push image to dockerhub registry
