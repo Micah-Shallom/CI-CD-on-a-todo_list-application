@@ -21,7 +21,7 @@ jobs:
           docker build -t mshallom/practicerepo:$TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push mshallom/practicerepo:$TAG
-          docker-compose -f docker-compose.yaml -d up
+          docker-compose -f docker-compose.yaml up -d 
 
 workflows:
   new-workflow:
