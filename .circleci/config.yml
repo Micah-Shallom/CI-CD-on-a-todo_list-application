@@ -49,7 +49,8 @@ jobs:
           name: login into docker hub
           command: |
             # docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-            echo $DOCKER_USERNAME $DOCKER_PASSWORD
+            docker build -d artifact .
+            docker images
             
 
 
