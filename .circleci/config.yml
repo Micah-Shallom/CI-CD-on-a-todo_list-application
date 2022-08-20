@@ -100,8 +100,7 @@ jobs:
       - run: 
           name: Dockerizing application frontend and pushing into dockerhub
           command: |
-            echo $TAG
-            docker build -t mshallom/practicerepo:$TAG .
+            docker build -t mshallom/practicerepo:$(cat ~/project/.circleci/version.txt) .
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       # - run:
       #     name: Running vulnerability scan on image before remote registry deployment
