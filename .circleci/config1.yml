@@ -1,0 +1,74 @@
+version: 2.1
+jobs:
+  build-app:
+      docker:
+        - image: cimg/node:15.0.1
+      steps:
+        - checkout
+        - restore_cache:
+            keys: [application-build]
+        - run:
+            name: Building our application with node
+            command: |
+              npm install
+        - save_cache:
+            paths: [./node_modules]
+            key: application-build
+
+  audit-app:
+    docker: 
+      - image: cimg/node:15.0.1
+    steps:  
+      - checkout
+      - restore_cache:  
+          keys: [application-build]
+      - run:
+          name: job running security audit on frontend build
+          command: |
+            npm install
+            npm audit fix --audit-level=critical --force
+            npm audit --audit-level=critical
+
+
+  deploy-frontend:
+    docker:
+      - image: cimg/go:1.17
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      # ... steps for building/testing app ...
+
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+
+      # build and push Docker image
+      # using circle_build_num for dummy semantic versioning
+      - run: 
+          name: Running dummy semantic versioning for image builds using circle ci builds
+          commands: |
+            export TAG=0.1.$CIRCLE_BUILD_NUM
+      - run: 
+          name: Dockerizing application frontend and pushing into dockerhub
+          command: |
+            docker build -t mshallom/practicerepo:$TAG .
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      - run:
+          name: Running vulnerability scan on image before remote registry deployment
+          command: |
+
+      - run:
+          name: Push image to dockerhub registry
+          command: |
+            docker push mshallom/practicerepo:$TAG
+      - run:
+          name: Running docker compose which runs container for app, and database
+          command: |
+            docker-compose -f docker-compose.yaml up -d 
+
+workflows:
+  new-workflow:
+    jobs:
+      - build
