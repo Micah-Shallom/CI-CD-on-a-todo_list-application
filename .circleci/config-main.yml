@@ -1,6 +1,9 @@
 version: 2.1
 orbs:
+  #orb for semantic versioning
   versioning: streamroot/versioning@0.1.1
+  #orb for image vulnerability scan
+  anchore: anchore/anchore-engine@1.6.0
 
 ##############################################################################################
 commands: 
@@ -74,6 +77,7 @@ jobs:
 
 
   deploy-frontend:
+    executor: anchore/anchore_engine
     docker:
       - image: cimg/go:1.17
         auth:
@@ -98,13 +102,27 @@ jobs:
             export TAG=$(cat ~/project/.circleci/version.txt)
             # export TAG=0.1.$CIRCLE_BUILD_NUM
       - run: 
-          name: Dockerizing application frontend and pushing into dockerhub
+          name: Dockerizing application frontend
           command: |
             docker build -t mshallom/practicerepo:$(cat ~/project/.circleci/version.txt) .
+
+      - run:
+          name: Login into dockerhub
+          command: |
             echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
       # - run:
       #     name: Running vulnerability scan on image before remote registry deployment
       #     command: |
+      - anchore/analyze_local_image:
+        dockerfile_path: ./Dockerfile
+        image_name: mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
+        policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
+        policy_failure: true
+        timeout: "500"
+    - anchore/parse_reports
+    - store_artifacts:
+        path: anchore-reports
 
       - run:
           name: Push image to dockerhub registry
@@ -118,4 +136,7 @@ jobs:
 workflows:
   new-workflow:
     jobs:
-      - deploy-frontend
+      - build-app
+      - audit-app
+      - deploy-frontend:
+          requires: [build-app, audit-app]
