@@ -2,130 +2,117 @@ version: 2.1
 
 orbs: 
   node: circleci/node@5.0.2 
+  semver-orb: tv2norge/semver-orb@0.0.1
 
-jobs:
-  build-app:
-    docker:
-      - image: cimg/node:15.0.1
+commands:
+  export-tag:
+    description: exports current tag to environment variable SEMVER_VERSION
     steps:
-      - checkout
-      - restore_cache:
-          keys: [application-build]
-      - run:
-          name: Building our application with node
-          command: |
-            npm install
-      - save_cache:
-          paths: [./node_modules]
-          key: application-build
-
-  audit-app:
-    docker: 
-      - image: cimg/node:15.0.1
-    steps:  
-      - checkout
-      - restore_cache:  
-          keys: [application-build]
-      - run:
-          name: job running security audit on frontend build
-          command: |
-            npm install
-            npm audit fix --audit-level=critical --force
-            npm audit --audit-level=critical
-
-  deploy-frontend:
+    - run: echo export SEMVER_VERSION=$(./semtag getcurrent) >> "$BASH_ENV"
+    - run: echo $SEMVER_VERSION
+  print:
+    description: Prints current tags
+    steps:
+    - setup
+    - export-tag
+    - run:
+        command: |
+          ./semtag get
+          echo SEMVER_VERSION=$SEMVER_VERSION
+  setup:
+    description: Check out code and pull semtag library. See https://github.com/pnikosis/semtag.
+      Add ssh keys for project, expects user key present with access to pushing tags.
+    steps:
+    - add_ssh_keys:
+        fingerprints: null
+    - checkout
+    - run: curl -o semtag https://raw.githubusercontent.com/pnikosis/semtag/v0.0.9/semtag
+    - run: chmod +x semtag
+    - run: ./semtag --version
+  tagnext:
+    description: Tags next version for commit. Master branch will by default bump
+      final tag on patch level, other branches bumps release candidate tag on patch
+      level. If there is no commit since last final version, the version is not bumped.
+    parameters:
+      feature-branch-command:
+        default: ./semtag candidate -s patch
+        description: 'Command for bumping non master branches, see https://github.com/pnikosis/semtag.
+          Example: '''''
+        type: string
+      master-branch-command:
+        default: ./semtag final -s patch
+        description: 'Command for bumping master branch, see https://github.com/pnikosis/semtag.
+          Example: ''./semtag final -s major'' for bumping major version or ''./semtag
+          alpha -s patch'' for bumping alpha on patch version'
+        type: string
+    steps:
+    - run:
+        command: |
+          if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            <<parameters.master-branch-command>>
+            echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
+          fi
+    - run:
+        command: |
+          if [ "${CIRCLE_BRANCH}" != "master" ]; then
+            <<parameters.feature-branch-command>>
+            echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
+          fi
+description: Semantic versioning based on git tags
+executors:
+  default:
     docker:
-      - image: docker:17.05.0-ce-git
-    steps:  
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --no-cache py-pip=9.0.0-r1
-            pip install docker-compose==1.12.0
-      - restore_cache:
-          keys:
-            - v1-{{ .Branch }}
-          paths:
-            - /caches/app.tar
-      - run:
-          name: Load Docker image layer cache
-          command: |
-            set +o pipefail
-            docker load -i /caches/app.tar | true
-##########################################################
-      - run:
-          name: Build application Docker image
-          command: |
-            docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-            docker build --cache-from=appimage -t appimage .
-            docker tag appimage:latest mshallom/appimage:0.0.1
-            docker push mshallom/appimage:0.0.1
-#######################################################################
-      - run:
-          name: Save Docker image layer cache
-          command: |
-            mkdir -p /caches
-            docker save -o /caches/app.tar appimage
-      - save_cache:
-          key: v1-{{ .Branch }}-{{ epoch }}
-          paths:
-            - /caches/app.tar 
-            
-  coupling-app-and-db:
-    docker:
-      - image: docker:17.05.0-ce-git
-    steps:  
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --no-cache py-pip=9.0.0-r1
-            pip install docker-compose==1.12.0
-      - run:  
-          name: Instantiating all container dockerfile
-          command: |
-            docker-compose -f docker-compose up 
-
-
-
-
-
-  # deploy-frontend:
-  #   docker:
-  #   - image: cimg/node:15.0.1
-  #     auth:
-  #           username: $DOCKER_USERNAME
-  #           password: $DOCKER_PASSWORD
-  #   steps:
-  #     - checkout
-  #     - restore_cache:
-  #         keys: [application-build]
-  #     - run:
-  #         name: checking docker version
-  #         command: |
-  #           docker --version
-  #     - run:
-  #         name: login into docker hub
-  #         command: |
-  #           # docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-  #           sudo service docker start
-  #           docker build -t artifact . .
-            
-
-
-
+    - image: circleci/golang:1.10
+jobs:
+  bump:
+    description: Use git tags on repo to find current version, bumps and push new
+      tag. For versioning scheme sementics, see https://github.com/pnikosis/semtag
+    executor: default
+    steps:
+    - setup
+    - print
+    - tagnext
+    - export-tag
+    - print
 
 
 workflows:
-  my_workflow:
-    jobs:
-      - coupling-app-and-db
-      # - deploy-frontend
-      # - build-app
-      # - audit-app
-      # - deploy-frontend:
-      #     requires: [build-app, audit-app]
-  
+  test-workflow:
+    jobs: 
+      - bump
+
+# version: 2.1
+
+# jobs:
+#   build-app:
+#     docker:
+#       - image: cimg/node:15.0.1
+#     steps:
+#       - checkout
+#       - restore_cache:
+#           keys: [application-build]
+#       - run:
+#           name: Building our application with node
+#           command: |
+#             npm install
+#       - save_cache:
+#           paths: [./node_modules]
+#           key: application-build
+
+#   audit-app:
+#     docker: 
+#       - image: cimg/node:15.0.1
+#     steps:  
+#       - checkout
+#       - restore_cache:  
+#           keys: [application-build]
+#       - run:
+#           name: job running security audit on frontend build
+#           command: |
+#             npm install
+#             npm audit fix --audit-level=critical --force
+#             npm audit --audit-level=critical
+
+# workflows:
+#   my_workflow:
+#     jobs:
