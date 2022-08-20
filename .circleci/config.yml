@@ -1,76 +1,82 @@
+# This code is licensed from CircleCI to the user under the MIT license.
+# See here for details: https://circleci.com/developer/orbs/licensing
 version: 2.1
 orbs: 
-  versioning: kollex/versioning@1.0.0
-description: "Define a VERSION and DOCKER_TAG based on the current git tag or branch names"
-
+  semver-orb: tv2norge/semver-orb@0.0.1
 commands:
-  define_version:
-    description: Define env vars DOCKER_TAG and VERSION based on an optional git tag or the git branch name
+  export-tag:
+    description: exports current tag to environment variable SEMVER_VERSION
     steps:
-      - run:
-          name: Define VERSION and DOCKER_TAG environment varriables
-          command: |
-            CIRCLE_BRANCH_CLEAN=$(echo ${CIRCLE_BRANCH} | sed "s;/;-;ig")
-
-            if [ -n "${CIRCLE_TAG}" ]; then DOCKER_TAG=${CIRCLE_TAG}; else DOCKER_TAG="${CIRCLE_BRANCH_CLEAN}"; fi
-            if [ -n "${CIRCLE_TAG}" ]; then VERSION=${CIRCLE_TAG}; else VERSION="${CIRCLE_BRANCH_CLEAN}@${CIRCLE_SHA1:0:6}"; fi
-
-            echo "export VERSION=$VERSION" >> $BASH_ENV
-            echo "export DOCKER_TAG=$DOCKER_TAG" >> $BASH_ENV
-
-  print_version:
-    description: Print the current VERSION
+    - run: echo export SEMVER_VERSION=$(./semtag getcurrent) >> "$BASH_ENV"
+    - run: echo $SEMVER_VERSION
+  print:
+    description: Prints current tags
     steps:
-      - run:
-          name: Print version
-          command: |
-            echo "VERSION: $VERSION"
-
-  print_docker_tag:
-    description: Print the current Docker tag name
+    - setup
+    - export-tag
+    - run:
+        command: |
+          ./semtag get
+          echo SEMVER_VERSION=$SEMVER_VERSION
+  setup:
+    description: Check out code and pull semtag library. See https://github.com/pnikosis/semtag.
+      Add ssh keys for project, expects user key present with access to pushing tags.
     steps:
-      - run:
-          name: Print Docker tag
-          command: |
-            echo "DOCKER_TAG: $DOCKER_TAG"
-
-  create_version_file:
-    description: Create a file which contains the current version
+    - add_ssh_keys:
+        fingerprints: null
+    - checkout
+    - run: curl -o semtag https://raw.githubusercontent.com/pnikosis/semtag/v0.0.9/semtag
+    - run: chmod +x semtag
+    - run: ./semtag --version
+  tagnext:
+    description: Tags next version for commit. Master branch will by default bump
+      final tag on patch level, other branches bumps release candidate tag on patch
+      level. If there is no commit since last final version, the version is not bumped.
     parameters:
-      version_file_path:
+      feature-branch-command:
+        default: ./semtag candidate -s patch
+        description: 'Command for bumping non master branches, see https://github.com/pnikosis/semtag.
+          Example: '''''
         type: string
-        description: The path to the newly created version file
-        default: ./VERSION
+      master-branch-command:
+        default: ./semtag final -s patch
+        description: 'Command for bumping master branch, see https://github.com/pnikosis/semtag.
+          Example: ''./semtag final -s major'' for bumping major version or ''./semtag
+          alpha -s patch'' for bumping alpha on patch version'
+        type: string
     steps:
-      - run:
-          name: Create version file
-          command: |
-            echo $VERSION > << parameters.version_file_path >>
-      - run:
-          name: Check version file
-          command: |
-            cat << parameters.version_file_path >>
-
+    - run:
+        command: |
+          if [ "${CIRCLE_BRANCH}" == "master" ]; then
+            <<parameters.master-branch-command>>
+            echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
+          fi
+    - run:
+        command: |
+          if [ "${CIRCLE_BRANCH}" != "master" ]; then
+            <<parameters.feature-branch-command>>
+            echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
+          fi
+description: Semantic versioning based on git tags
+executors:
+  default:
+    docker:
+    - image: circleci/golang:1.10
 jobs:
-  create-version-file:
-    docker:
-      - image: circleci/python:3
+  bump:
+    description: Use git tags on repo to find current version, bumps and push new
+      tag. For versioning scheme sementics, see https://github.com/pnikosis/semtag
+    executor: default
     steps:
-      - define_version
-      - print_version
-      - print_docker_tag
-      - create_version_file
+    - setup
+    - print
+    - tagnext
+    - export-tag
+    - print
+version: 2.1
 
-  print-version:
-    docker:
-      - image: circleci/python:3
-    steps:
-      - define_version
-      - print_version
-      - print_docker_tag
 
 workflows:
   my-workflow:
     jobs:
-      - create-version-file
-      - print-version
+      - bump
