@@ -45,13 +45,13 @@ commands:
     steps:
     - run:
         command: |
-          if [ "${CIRCLE_BRANCH}" == "master" ]; then
+          if [ "${CIRCLE_BRANCH}" == "main" ]; then
             <<parameters.master-branch-command>>
             echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
           fi
     - run:
         command: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
+          if [ "${CIRCLE_BRANCH}" != "main" ]; then
             <<parameters.feature-branch-command>>
             echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
           fi
