@@ -92,7 +92,7 @@ jobs:
   #         command: |
   #           # docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
   #           sudo service docker start
-  #           docker build -t artifact .
+  #           docker build -t artifact . .
             
 
 
