@@ -34,7 +34,8 @@ commands:
               fi
             fi
             export VERSION=$VERSION
-            echo "export VERSION=$VERSION" >> $BASH_ENV
+            # echo "export VERSION=$VERSION" >> $BASH_ENV
+            echo $VERSION >> $BASH_ENV
 
     
 jobs:
@@ -45,7 +46,7 @@ jobs:
       - checkout
       - generate
       - run: |
-          echo $VERSION
+          # echo $VERSION
           echo $BASH_ENV
     
 
