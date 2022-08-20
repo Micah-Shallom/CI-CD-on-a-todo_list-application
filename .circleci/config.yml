@@ -1,6 +1,6 @@
 version: 2.1
-orbs:
-  docsync: streamroot/versioning@1.0.0
+orbs: 
+  versioning: streamroot/versioning@0.1.1
 jobs:
   build:
     docker:
