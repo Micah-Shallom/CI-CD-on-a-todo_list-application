@@ -3,20 +3,13 @@ description: "Orb to generate a version number from the git history"
 orbs:
   versioning: streamroot/versioning@0.1.1
   # docsync: streamroot/versioning@1.0.0
-commands:
+commands: 
   generate:
     parameters:
       rc_branch:
-        description: |
-          Regex to determine release candidate branches
+        description: Regex to determine release candidate branches
         type: string
         default: ^main$
-
-    
-jobs:
-  build:
-    docker:
-      - image: alpine/git
     steps:
       - checkout
       - versioning/generate
@@ -41,8 +34,18 @@ jobs:
                 echo $VERSION
               fi
             fi
-            echo "export VERSION=$VERSION" >> $BASH_ENV
+            echo $VERSION
+            # echo "export VERSION=$VERSION" >> $BASH_ENV
 
+    
+jobs:
+  build:
+    docker:
+      - image: alpine/git
+    steps:
+      - checkout
+      - generate
+    
 
 workflows:
   my_workflow:
