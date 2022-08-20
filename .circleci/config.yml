@@ -11,7 +11,7 @@ commands:
         default: ^main$
     steps:
       - checkout
-      - versioning/generate
+      # - versioning/generate
       - run:
           name: "Add `VERSION` environment variable to `BASH_ENV`"
           command: |
