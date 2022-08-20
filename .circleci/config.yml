@@ -77,12 +77,12 @@ jobs:
 
 
   deploy-frontend:
-    executor: anchore/anchore_engine
     docker:
       - image: cimg/go:1.17
         auth:
           username: $DOCKER_USERNAME
           password: $DOCKER_PASSWORD  # context / project UI env-var reference
+    executor: anchore/anchore_engine
     steps:
       - checkout
       - generate
