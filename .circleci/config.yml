@@ -1,79 +1,15 @@
 version: 2.1
-orbs: 
-  semver-orb: tv2norge/semver-orb@0.0.1
-commands:
-  export-tag:
-    description: exports current tag to environment variable SEMVER_VERSION
-    steps:
-    - run: echo export SEMVER_VERSION=$(./semtag getcurrent) >> "$BASH_ENV"
-    - run: echo $SEMVER_VERSION
-  print:
-    description: Prints current tags
-    steps:
-    - setup
-    - export-tag
-    - run:
-        command: |
-          ./semtag get
-          echo SEMVER_VERSION=$SEMVER_VERSION
-  setup:
-    description: Check out code and pull semtag library. See https://github.com/pnikosis/semtag.
-      Add ssh keys for project, expects user key present with access to pushing tags.
-    steps:
-    - add_ssh_keys:
-        fingerprints: null
-    - checkout
-    - run: curl -o semtag https://raw.githubusercontent.com/pnikosis/semtag/v0.0.9/semtag
-    - run: chmod +x semtag
-    - run: ./semtag --version
-  tagnext:
-    description: Tags next version for commit. Master branch will by default bump
-      final tag on patch level, other branches bumps release candidate tag on patch
-      level. If there is no commit since last final version, the version is not bumped.
-    parameters:
-      feature-branch-command:
-        default: ./semtag candidate -s patch
-        description: 'Command for bumping non master branches, see https://github.com/pnikosis/semtag.
-          Example: '''''
-        type: string
-      master-branch-command:
-        default: ./semtag final -s patch
-        description: 'Command for bumping master branch, see https://github.com/pnikosis/semtag.
-          Example: ''./semtag final -s major'' for bumping major version or ''./semtag
-          alpha -s patch'' for bumping alpha on patch version'
-        type: string
-    steps:
-    - run:
-        command: |
-          if [ "${CIRCLE_BRANCH}" == "main" ]; then
-            <<parameters.master-branch-command>>
-            echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
-          fi
-    - run:
-        command: |
-          if [ "${CIRCLE_BRANCH}" != "main" ]; then
-            <<parameters.feature-branch-command>>
-            echo New tag on ${CIRCLE_BRANCH}: $(./semtag getcurrent)
-          fi
-description: Semantic versioning based on git tags
-executors:
-  default:
-    docker:
-    - image: circleci/golang:1.10
+orbs:
+  docsync: streamroot/versioning@1.0.0
 jobs:
-  bump:
-    description: Use git tags on repo to find current version, bumps and push new
-      tag. For versioning scheme sementics, see https://github.com/pnikosis/semtag
-    executor: default
+  build:
+    docker:
+      - image: alpine/git
     steps:
-    - setup
-    - print
-    - tagnext
-    - export-tag
-    - print
-
+      - checkout
+      - versioning/generate
 
 workflows:
-  my-workflow:
+  my_workflow:
     jobs:
-      - bump
+      - build
