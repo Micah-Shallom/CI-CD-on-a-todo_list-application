@@ -94,7 +94,7 @@ jobs:
           at: ~/
       - run: 
           name: Running dummy semantic versioning for image builds using circle ci builds
-          commands: |
+          command: |
             # export TAG=0.1.$CIRCLE_BUILD_NUM
             export TAG=$(cat ~/project/.circleci/version.txt)
       - run: 
@@ -118,4 +118,4 @@ jobs:
 workflows:
   new-workflow:
     jobs:
-      - build
+      - deploy-frontend
