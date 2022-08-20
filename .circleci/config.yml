@@ -48,7 +48,7 @@ jobs:
       - checkout
       - generate
       - attach_workspace:
-        at: ~/
+          at: ~/
       - run: |
           cat ~/project/.circleci/version.txt
 workflows:
