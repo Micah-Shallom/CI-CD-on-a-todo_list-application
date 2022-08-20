@@ -1,13 +1,54 @@
 version: 2.1
-orbs: 
-  versioning: streamroot/versioning@0.1.1
-jobs:
-  build:
-    docker:
-      - image: alpine/git
+description: "Orb to generate a version number from the git history"
+
+examples:
+  basic_commands:
+    description: |
+      Generate a version number from the git ref
+    usage:
+      version: 2.1
+      orbs:
+        versioning: streamroot/versioning@0.1.1
+        # docsync: streamroot/versioning@1.0.0
+      jobs:
+        build:
+          docker:
+            - image: alpine/git
+          steps:
+            - checkout
+            - versioning/generate
+
+commands:
+  generate:
+    parameters:
+      rc_branch:
+        description: |
+          Regex to determine release candidate branches
+        type: string
+        default: ^main$
+
     steps:
-      - checkout
-      - versioning/generate
+      - run:
+          name: "Add `VERSION` environment variable to `BASH_ENV`"
+          command: |
+            VERSION=$CIRCLE_TAG
+            if [ -z "$VERSION" ]; then
+              SHA="$(git rev-parse --short HEAD)"
+
+              VERSION="$(git describe --tags `git rev-list --tags --max-count=1` || true)"
+              VERSION=${VERSION:-'0.0.0'}
+              MAJOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+              MINOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+              PATCH="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+
+              if [[ "$CIRCLE_BRANCH" =~ <<parameters.rc_branch>> ]]; then
+                VERSION="$MAJOR.$((MINOR+1)).0-rc-$SHA"
+              else
+                VERSION="$MAJOR.$((MINOR+1)).0-beta-$SHA"
+              fi
+            fi
+            echo "export VERSION=$VERSION" >> $BASH_ENV
+
 
 workflows:
   my_workflow:
