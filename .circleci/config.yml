@@ -34,6 +34,9 @@ jobs:
   deploy-frontend:
     docker:
     - image: cimg/node:15.0.1
+      auth:
+            username: $DOCKER_USERNAME
+            password: $DOCKER_PASSWORD
     steps:
       - checkout
       - restore_cache:
@@ -42,6 +45,12 @@ jobs:
           name: checking docker version
           command: |
             docker --version
+      - run:
+          name: login into docker hub
+          command: |
+            # docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+            echo $DOCKER_USERNAME $DOCKER_PASSWORD
+            
 
 
 
