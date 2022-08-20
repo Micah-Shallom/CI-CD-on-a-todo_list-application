@@ -1,7 +1,7 @@
 version: 2.1
 orbs: 
   versioning: kollex/versioning@1.0.0
-description: "Define a VERSION and DOCKER_TAG based on the current git tag or branch name"
+description: "Define a VERSION and DOCKER_TAG based on the current git tag or branch names"
 
 commands:
   define_version:
