@@ -15,6 +15,7 @@ jobs:
           docker_layer_caching: true
 
       # build and push Docker image
+      # using circle_build_num for semantic versioning
       - run: |
           TAG=0.1.$CIRCLE_BUILD_NUM
           docker build -t mshallom/practicerepo:$TAG .
