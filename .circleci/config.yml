@@ -26,17 +26,15 @@ commands:
               PATCH="${VERSION%%.*}"; VERSION="${VERSION#*.}"
 
               if [[ "$CIRCLE_BRANCH" =~ <<parameters.rc_branch>> ]]; then
-                # VERSION="$MAJOR.$((MINOR+1)).0-rc-$SHA"
                 VERSION="$MAJOR.$((MINOR+1)).$PATCH"
                 echo $VERSION
               else
-                # VERSION="$MAJOR.$((MINOR+1)).0-beta-$SHA"
                 VERSION="$MAJOR.$((MINOR+1)).$PATCH"
                 echo $VERSION
               fi
             fi
             export VERSION=$VERSION
-            # echo "export VERSION=$VERSION" >> $BASH_ENV
+            echo "export VERSION=$VERSION" >> $BASH_ENV
 
     
 jobs:
@@ -46,7 +44,9 @@ jobs:
     steps:
       - checkout
       - generate
-      - run: echo $VERSION
+      - run: |
+          echo $VERSION
+          echo $BASH_ENV
     
 
 workflows:
