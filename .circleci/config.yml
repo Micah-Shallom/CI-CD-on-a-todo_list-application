@@ -1,18 +1,122 @@
 version: 2.1
 orbs:
+  #orb for semantic versioning
+  versioning: streamroot/versioning@0.1.1
+  #orb for image vulnerability scan
   anchore: anchore/anchore-engine@1.6.0
-jobs:
-  local_image_scan:
-    executor: anchore/anchore_engine
+
+##############################################################################################
+commands: 
+  generate:
+    parameters:
+      rc_branch:
+        description: Regex to determine release candidate branches
+        type: string
+        default: ^main$
     steps:
-    - setup_remote_docker
-    - checkout
-    - run:
-        command: docker build -t "mshallom/practicerepo:0.1.0" .
-        name: build container
-    - anchore/analyze_local_image:
+      - checkout
+      # - versioning/generate
+      - run:
+          name: "Add `VERSION` environment variable to `BASH_ENV`"
+          command: |
+            VERSION=$CIRCLE_TAG
+            if [ -z "$VERSION" ]; then
+              SHA="$(git rev-parse --short HEAD)"
+
+              VERSION="$(git describe --tags `git rev-list --tags --max-count=1` || true)"
+              VERSION=${VERSION:-'0.0.0'}
+              MAJOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+              MINOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+              PATCH="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+
+              if [[ "$CIRCLE_BRANCH" =~ <<parameters.rc_branch>> ]]; then
+                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
+                echo $VERSION
+              else
+                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
+                echo $VERSION
+              fi
+            fi
+            echo $VERSION >> ~/project/.circleci/version.txt
+            cat ~/project/.circleci/version.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/version.txt
+############################################################################################################################
+
+jobs:
+  build-app:
+      docker:
+        - image: cimg/node:15.0.1
+      steps:
+        - checkout
+        - restore_cache:
+            keys: [application-build]
+        - run:
+            name: Building our application with node
+            command: |
+              npm install
+        - save_cache:
+            paths: [./node_modules]
+            key: application-build
+
+  audit-app:
+    docker: 
+      - image: cimg/node:15.0.1
+    steps:  
+      - checkout
+      - restore_cache:  
+          keys: [application-build]
+      - run:
+          name: job running security audit on frontend build
+          command: |
+            npm install
+            npm audit fix --audit-level=critical --force
+            npm audit --audit-level=critical
+
+
+  deploy-frontend:
+    executor: anchore/anchore_engine
+    docker:
+      - image: cimg/go:1.17
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - generate
+      # ... steps for building/testing app ...
+
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+
+      # build and push Docker image
+      # using circle_build_num for dummy semantic versioning
+      - attach_workspace:
+          at: ~/
+      - run: 
+          name: Running dummy semantic versioning for image builds using circle ci builds
+          command: |
+            export TAG=$(cat ~/project/.circleci/version.txt)
+            # export TAG=0.1.$CIRCLE_BUILD_NUM
+      - run: 
+          name: Dockerizing application frontend
+          command: |
+            docker build -t mshallom/practicerepo:$(cat ~/project/.circleci/version.txt) .
+
+      - run:
+          name: Login into dockerhub
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
+      # - run:
+      #     name: Running vulnerability scan on image before remote registry deployment
+      #     command: |
+      - anchore/analyze_local_image:
         dockerfile_path: ./Dockerfile
-        image_name: mshallom/practicerepo:0.1.0
+        image_name: mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
         policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
         policy_failure: true
         timeout: "500"
@@ -20,7 +124,19 @@ jobs:
     - store_artifacts:
         path: anchore-reports
 
+      - run:
+          name: Push image to dockerhub registry
+          command: |
+            docker push mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
+      - run:
+          name: Running docker compose which runs container for app, and database
+          command: |
+            docker-compose -f docker-compose.yaml up -d 
+
 workflows:
-  scan-workflow:
+  new-workflow:
     jobs:
-      - local_image_scan
+      - build-app
+      - audit-app
+      - deploy-frontend:
+          requires: [build-app, audit-app]
