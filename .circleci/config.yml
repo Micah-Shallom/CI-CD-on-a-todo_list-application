@@ -49,8 +49,9 @@ jobs:
           name: login into docker hub
           command: |
             # docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+            sudo systemctl start docker
             docker build -t artifact .
-            # docker images
+            docker images
             
 
 
