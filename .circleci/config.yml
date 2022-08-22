@@ -118,7 +118,6 @@ jobs:
         auth:
           username: $DOCKER_USERNAME
           password: $DOCKER_PASSWORD  # context / project UI env-var reference
-    executor: anchore/anchore_engine
     steps:
       - checkout
       - generate
@@ -149,7 +148,7 @@ jobs:
 
       # Running vulnerability scan on image before remote registry deployment
       - trivy/validate:
-          image: mshallom/practicerepo:0.1.0
+          image: mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
           severity: HIGH,CRITICAL
           ignore-unfixed: yes
           exit-code: 1
