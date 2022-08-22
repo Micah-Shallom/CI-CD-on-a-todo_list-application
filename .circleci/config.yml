@@ -1,113 +1,167 @@
+# This code is licensed from CircleCI to the user under the MIT license.
+# See here for details: https://circleci.com/developer/orbs/licensing
 version: 2.1
 orbs: 
   trivy: signavio/trivy@1.3.0
 
 description: Docker image vulnerability scans with trivy
+
 executors:
   default:
     description: "Container to run the steps in"
     parameters:
       image:
         type: string
-        # default: ubuntu-2004:202111-02
-        default: mshallom/practicerepo:0.1.0
+        default: ubuntu-2004:202111-02
     machine:
       image: <<parameters.image>>
 
-
 commands:
-  description: Scan an image for vulnerabilities
-  parameters:
-    docker-image:
-      description: |
-        Fully qualified Docker image name, i.e. hostname[:port]/reponame[:tag].
-      type: string
-      default: mshallom/practicerepo:0.1.0
-    severity:
-      description: >
-        Comma separated list of severities of vulnerabilities to be displayed, one
-        of UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL.
-      type: string
-      default: 'HIGH,CRITICAL'
-    vuln-type:
-      description: Comma-separated list of vulnerability types.
-      type: string
-      default: 'os,library'
-    format:
-      description: Report format
-      type: enum
-      enum:
-        - table
-        - json
-        - template
-      default: table
-    template:
-      description: >
-        Path to the template to use to generate a report. This option is only
-        effective if format=template.
-      type: string
-      default: ''
-    output-file-path:
-      description: Output file path.
-      type: string
-      default: ''
-    ignore-unfixed:
-      description: Include only vulnerabilities that have a known fix.
-      type: boolean
-      default: true
-    no-progress:
-      description: Suppress progress bar.
-      type: boolean
-      default: true
-    exit-code:
-      description: Exit code when vulnerabilities were found.
-      type: integer
-      default: 1
-    trivy-version:
-      description: Trivy version to be used for scanning.
-      type: string
-      default: latest
-    skip-dir:
-      description: Directory where the traversal is skipped. Only support single directory.
-      type: string
-      default: ''
-    skip-file:
-      description: File path to skip traversal. Only support single file.
-      type: string
-      default: ''
-  steps:
-    - run:
-        name: Install trivy
-        command: >
-          TVER='<<parameters.trivy-version>>'
+  vulnerability-scan:
+    description: "Scan an image for vulnerabilities"
+    parameters:
+      docker-image:
+        description: >
+          Fully qualified Docker image name, i.e. hostname[:port]/reponame[:tag].
+        type: string
+        default: mshallom/practicerepo:0.1.0
+      severity:
+        description: >
+          Comma separated list of severities of vulnerabilities to be displayed,
+          one of UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL.
+        type: string
+        default: "HIGH,CRITICAL"
+      vuln-type:
+        description: Comma-separated list of vulnerability types.
+        type: string
+        default: "os,library"
+      format:
+        description: Report format
+        type: enum
+        enum: [ "table", "json", "template" ]
+        default: "table"
+      template:
+        description: >
+          Path to the template to use to generate a report. This option is only
+          effective if format=template.
+        type: string
+        default: ''
+      output-file-path:
+        description: Output file path.
+        type: string
+        default: ''
+      ignore-unfixed:
+        description: Include only vulnerabilities that have a known fix.
+        type: boolean
+        default: true
+      no-progress:
+        description: Suppress progress bar.
+        type: boolean
+        default: true
+      exit-code:
+        description: Exit code when vulnerabilities were found.
+        type: integer
+        default: 1
+      trivy-version:
+        description: Trivy version to be used for scanning.
+        type: string
+        default: latest
+      skip-dir:
+        description: Directory where the traversal is skipped. Only support single directory.
+        type: string
+        default: ''
+      skip-file:
+        description: File path to skip traversal. Only support single file.
+        type: string
+        default: ''
+    steps:
+      - run:
+          name: Install trivy
+          command: |
+            TVER='<<parameters.trivy-version>>'
+            if [[ 'latest' == "$TVER" ]]; then
+              TVER=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name | tail -c +2)
+            fi
+            wget -c https://github.com/aquasecurity/trivy/releases/download/v$TVER/trivy_${TVER}_Linux-64bit.tar.gz
+            tar -xzf trivy_${TVER}_Linux-64bit.tar.gz
+            chmod a+x trivy
+            wget -q https://raw.githubusercontent.com/aquasecurity/trivy/v$TVER/contrib/junit.tpl
+      - run:
+          name: Docker Image Vulnerability Scan
+          command: |
+            [[ ! -z '<<parameters.output-file-path>>' ]] && mkdir -p "$(dirname '<<parameters.output-file-path>>')"
+            ./trivy image \
+              --format='<<parameters.format>>' \
+              --template='<<parameters.template>>' \
+              --output='<<parameters.output-file-path>>' \
+              --exit-code='<<parameters.exit-code>>' \
+              --severity='<<parameters.severity>>' \
+              --no-progress='<<parameters.no-progress>>' \
+              --ignore-unfixed='<<parameters.ignore-unfixed>>' \
+              --skip-dirs='<<parameters.skip-dir>>' \
+              --skip-files='<<parameters.skip-file>>' \
+              "<<parameters.docker-image>>"
 
-          if [[ 'latest' == "$TVER" ]]; then
-            TVER=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name | tail -c +2)
-          fi
-
-          wget -c
-          https://github.com/aquasecurity/trivy/releases/download/v$TVER/trivy_${TVER}_Linux-64bit.tar.gz
-
-          tar -xzf trivy_${TVER}_Linux-64bit.tar.gz
-
-          chmod a+x trivy
-
-          wget -q
-          https://raw.githubusercontent.com/aquasecurity/trivy/v$TVER/contrib/junit.tpl
-    - run:
-        name: Docker Image Vulnerability Scan
-        command: >
-          [[ ! -z '<<parameters.output-file-path>>' ]] && mkdir -p "$(dirname
-          '<<parameters.output-file-path>>')"
-
-          ./trivy image \
-            --format='<<parameters.format>>' \
-            --template='<<parameters.template>>' \
-            --output='<<parameters.output-file-path>>' \
-            --exit-code='<<parameters.exit-code>>' \
-            --severity='<<parameters.severity>>' \
-            --no-progress='<<parameters.no-progress>>' \
-            --ignore-unfixed='<<parameters.ignore-unfixed>>' \
-            --skip-dirs='<<parameters.skip-dir>>' \
-            --skip-files='<<parameters.skip-file>>' \
-            "<<parameters.docker-image>>"
+  vulnerability-scan-report:
+    description: "Generate a JUnit report and store in CircleCI"
+    parameters:
+      docker-image:
+        description: >
+          Fully qualified Docker image name, i.e. hostname[:port]/reponame[:tag].
+        type: string
+      severity:
+        description: >
+          Comma separated list of severities of vulnerabilities to be displayed,
+          one of UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL.
+        type: string
+        default: "HIGH,CRITICAL"
+      vuln-type:
+        description: Comma-separated list of vulnerability types.
+        type: string
+        default: "os,library"
+      output-folder-path:
+        description: Output folder path.
+        type: string
+        default: 'trivy-scan-results'
+      ignore-unfixed:
+        description: Include only vulnerabilities that have a fix
+        type: boolean
+        default: true
+      no-progress:
+        description: Suppress progress bar
+        type: boolean
+        default: true
+      exit-code:
+        description: Exit code when vulnerabilities were found.
+        type: integer
+        default: 1
+      trivy-version:
+        description: Trivy version to be used for scanning.
+        type: string
+        default: latest
+      skip-dir:
+        description: Directory where the traversal is skipped. Only support single directory.
+        type: string
+        default: ''
+      skip-file:
+        description: File path to skip traversal. Only support single file.
+        type: string
+        default: ''
+    steps:
+      - vulnerability-scan:
+          docker-image: <<parameters.docker-image>>
+          severity: <<parameters.severity>>
+          exit-code: <<parameters.exit-code>>
+          vuln-type: <<parameters.vuln-type>>
+          ignore-unfixed: <<parameters.ignore-unfixed>>
+          no-progress: <<parameters.no-progress>>
+          format: template
+          template: '@junit.tpl'
+          output-file-path: <<parameters.output-folder-path>>/junit.xml
+          trivy-version: <<parameters.trivy-version>>
+          skip-dir: <<parameters.skip-dir>>
+          skip-file: <<parameters.skip-file>>
+      - store_test_results:
+          path: <<parameters.output-folder-path>>
+      - store_artifacts:
+          path: <<parameters.output-folder-path>>
