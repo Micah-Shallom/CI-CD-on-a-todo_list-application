@@ -24,7 +24,6 @@ commands:
         description: >
           Fully qualified Docker image name, i.e. hostname[:port]/reponame[:tag].
         type: string
-        default: mshallom/practicerepo:0.1.0
       severity:
         description: >
           Comma separated list of severities of vulnerabilities to be displayed,
@@ -114,7 +113,7 @@ commands:
           Comma separated list of severities of vulnerabilities to be displayed,
           one of UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL.
         type: string
-        default: "HIGH,CRITICAL"
+        default: "UNKNOWN, LOW, MEDIUM,HIGH,CRITICAL"
       vuln-type:
         description: Comma-separated list of vulnerability types.
         type: string
@@ -171,7 +170,11 @@ jobs:
     docker:
       - image: cimg/go:1.17
     steps:
-      - vulnerability-scan
+      - vulnerability-scan:
+          docker-image: mshallom/practicerepo:0.1.0
+      - vulnerability-scan-report:
+          docker-image: mshallom/practicerepo:0.1.0
+      - run: echo "Vulnerability Scan complete"
 workflows:
   trivy-workflow:
     jobs:
