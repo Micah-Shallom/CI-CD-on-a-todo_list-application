@@ -1,142 +1,113 @@
 version: 2.1
-orbs:
-  #orb for semantic versioning
-  versioning: streamroot/versioning@0.1.1
-  #orb for image vulnerability scan
-  anchore: anchore/anchore-engine@1.6.0
+orbs: 
+  trivy: signavio/trivy@1.3.0
 
-##############################################################################################
-commands: 
-  generate:
+description: Docker image vulnerability scans with trivy
+executors:
+  default:
+    description: "Container to run the steps in"
     parameters:
-      rc_branch:
-        description: Regex to determine release candidate branches
+      image:
         type: string
-        default: ^main$
-    steps:
-      - checkout
-      # - versioning/generate
-      - run:
-          name: "Add `VERSION` environment variable to `BASH_ENV`"
-          command: |
-            VERSION=$CIRCLE_TAG
-            if [ -z "$VERSION" ]; then
-              SHA="$(git rev-parse --short HEAD)"
-
-              VERSION="$(git describe --tags `git rev-list --tags --max-count=1` || true)"
-              VERSION=${VERSION:-'0.0.0'}
-              MAJOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
-              MINOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
-              PATCH="${VERSION%%.*}"; VERSION="${VERSION#*.}"
-
-              if [[ "$CIRCLE_BRANCH" =~ <<parameters.rc_branch>> ]]; then
-                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
-                echo $VERSION
-              else
-                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
-                echo $VERSION
-              fi
-            fi
-            echo $VERSION >> ~/project/.circleci/version.txt
-            cat ~/project/.circleci/version.txt
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/version.txt
-############################################################################################################################
-
-jobs:
-  build-app:
-      docker:
-        - image: cimg/node:15.0.1
-      steps:
-        - checkout
-        - restore_cache:
-            keys: [application-build]
-        - run:
-            name: Building our application with node
-            command: |
-              npm install
-        - save_cache:
-            paths: [./node_modules]
-            key: application-build
-
-  audit-app:
-    docker: 
-      - image: cimg/node:15.0.1
-    steps:  
-      - checkout
-      - restore_cache:  
-          keys: [application-build]
-      - run:
-          name: job running security audit on frontend build
-          command: |
-            npm install
-            npm audit fix --audit-level=critical --force
-            npm audit --audit-level=critical
+        # default: ubuntu-2004:202111-02
+        default: mshallom/practicerepo:0.1.0
+    machine:
+      image: <<parameters.image>>
 
 
-  deploy-frontend:
-    docker:
-      - image: cimg/go:1.17
-        auth:
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD  # context / project UI env-var reference
-    executor: anchore/anchore_engine
-    steps:
-      - checkout
-      - generate
-      # ... steps for building/testing app ...
+commands:
+  description: Scan an image for vulnerabilities
+  parameters:
+    docker-image:
+      description: |
+        Fully qualified Docker image name, i.e. hostname[:port]/reponame[:tag].
+      type: string
+      default: mshallom/practicerepo:0.1.0
+    severity:
+      description: >
+        Comma separated list of severities of vulnerabilities to be displayed, one
+        of UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL.
+      type: string
+      default: 'HIGH,CRITICAL'
+    vuln-type:
+      description: Comma-separated list of vulnerability types.
+      type: string
+      default: 'os,library'
+    format:
+      description: Report format
+      type: enum
+      enum:
+        - table
+        - json
+        - template
+      default: table
+    template:
+      description: >
+        Path to the template to use to generate a report. This option is only
+        effective if format=template.
+      type: string
+      default: ''
+    output-file-path:
+      description: Output file path.
+      type: string
+      default: ''
+    ignore-unfixed:
+      description: Include only vulnerabilities that have a known fix.
+      type: boolean
+      default: true
+    no-progress:
+      description: Suppress progress bar.
+      type: boolean
+      default: true
+    exit-code:
+      description: Exit code when vulnerabilities were found.
+      type: integer
+      default: 1
+    trivy-version:
+      description: Trivy version to be used for scanning.
+      type: string
+      default: latest
+    skip-dir:
+      description: Directory where the traversal is skipped. Only support single directory.
+      type: string
+      default: ''
+    skip-file:
+      description: File path to skip traversal. Only support single file.
+      type: string
+      default: ''
+  steps:
+    - run:
+        name: Install trivy
+        command: >
+          TVER='<<parameters.trivy-version>>'
 
-      - setup_remote_docker:
-          version: 20.10.14
-          docker_layer_caching: true
+          if [[ 'latest' == "$TVER" ]]; then
+            TVER=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name | tail -c +2)
+          fi
 
-      # build and push Docker image
-      # using circle_build_num for dummy semantic versioning
-      - attach_workspace:
-          at: ~/
-      - run: 
-          name: Running dummy semantic versioning for image builds using circle ci builds
-          command: |
-            export TAG=$(cat ~/project/.circleci/version.txt)
-            # export TAG=0.1.$CIRCLE_BUILD_NUM
-      - run: 
-          name: Dockerizing application frontend
-          command: |
-            docker build -t mshallom/practicerepo:$(cat ~/project/.circleci/version.txt) .
+          wget -c
+          https://github.com/aquasecurity/trivy/releases/download/v$TVER/trivy_${TVER}_Linux-64bit.tar.gz
 
-      - run:
-          name: Login into dockerhub
-          command: |
-            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          tar -xzf trivy_${TVER}_Linux-64bit.tar.gz
 
-      # - run:
-      #     name: Running vulnerability scan on image before remote registry deployment
-      #     command: |
-      - anchore/analyze_local_image:
-          dockerfile_path: ./Dockerfile
-          image_name: mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
-          policy_bundle_file_path: .circleci/.anchore/policy_bundle.json
-          policy_failure: true
-          timeout: "500"
-      - anchore/parse_reports
-      - store_artifacts:
-          path: anchore-reports
+          chmod a+x trivy
 
-      - run:
-          name: Push image to dockerhub registry
-          command: |
-            docker push mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
-      - run:
-          name: Running docker compose which runs container for app, and database
-          command: |
-            docker-compose -f docker-compose.yaml up -d 
+          wget -q
+          https://raw.githubusercontent.com/aquasecurity/trivy/v$TVER/contrib/junit.tpl
+    - run:
+        name: Docker Image Vulnerability Scan
+        command: >
+          [[ ! -z '<<parameters.output-file-path>>' ]] && mkdir -p "$(dirname
+          '<<parameters.output-file-path>>')"
 
-workflows:
-  new-workflow:
-    jobs:
-      - build-app
-      - audit-app
-      - deploy-frontend:
-          requires: [build-app, audit-app]
+          ./trivy image \
+            --format='<<parameters.format>>' \
+            --template='<<parameters.template>>' \
+            --output='<<parameters.output-file-path>>' \
+            --exit-code='<<parameters.exit-code>>' \
+            --severity='<<parameters.severity>>' \
+            --no-progress='<<parameters.no-progress>>' \
+            --ignore-unfixed='<<parameters.ignore-unfixed>>' \
+            --skip-dirs='<<parameters.skip-dir>>' \
+            --skip-files='<<parameters.skip-file>>' \
+            "<<parameters.docker-image>>"
