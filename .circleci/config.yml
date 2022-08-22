@@ -165,3 +165,14 @@ commands:
           path: <<parameters.output-folder-path>>
       - store_artifacts:
           path: <<parameters.output-folder-path>>
+
+jobs:
+  test-job:
+    docker:
+      - image: cimg/go:1.17
+    steps:
+      - vulnerability-scan
+workflows:
+  trivy-workflow:
+    jobs:
+      - test-job
