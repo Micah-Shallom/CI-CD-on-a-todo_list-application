@@ -40,19 +40,20 @@ commands:
               trivy image --no-progress --exit-code << parameters.exit-code >> --severity << parameters.severity >> --ignore-unfixed=<< parameters.ignore-unfixed >> << parameters.image >>
             "
 
-      jobs:
-        build:
-          docker:
-            - image: circleci/python:3.8.2
-          steps:
-            - setup_remote_docker:
-                docker_layer_caching: true
-            - trivy/validate:
-                image: mshallom/practicerepo:0.1.0
-                severity: HIGH,CRITICAL
-                ignore-unfixed: yes
-                exit-code: 1
-                cve-ignore-list: CVE-2021-3807
+jobs:
+  build:
+    docker:
+      - image: cimg/base
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - trivy/validate:
+          image: mshallom/practicerepo:0.1.0
+          severity: HIGH,CRITICAL
+          ignore-unfixed: yes
+          exit-code: 1
+          cve-ignore-list: CVE-2021-3807
+
 workflows:
   jobs:
     - build
