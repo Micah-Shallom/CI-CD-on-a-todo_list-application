@@ -6,24 +6,24 @@ orbs:
 
 description: Docker image vulnerability scans with trivy
 
-executors:
-  default:
-    description: "Container to run the steps in"
-    parameters:
-      image:
-        type: string
-        default: ubuntu-2004:202111-02
-    machine:
-      image: <<parameters.image>>
+# executors:
+#   default:
+#     description: "Container to run the steps in"
+#     parameters:
+#       image:
+#         type: string
+#         default: cimg/base
+#     machine:
+#       image: <<parameters.image>>
 
 commands:
   vulnerability-scan:
     description: "Scan an image for vulnerabilities"
     parameters:
-      docker-image:
-        description: >
-          Fully qualified Docker image name, i.e. hostname[:port]/reponame[:tag].
-        type: string
+      # docker-image:
+      #   description: >
+      #     Fully qualified Docker image name, i.e. hostname[:port]/reponame[:tag].
+      #   type: string
       severity:
         description: >
           Comma separated list of severities of vulnerabilities to be displayed,
@@ -56,7 +56,7 @@ commands:
       no-progress:
         description: Suppress progress bar.
         type: boolean
-        default: true
+        default: false
       exit-code:
         description: Exit code when vulnerabilities were found.
         type: integer
