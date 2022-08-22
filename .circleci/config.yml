@@ -1,21 +1,58 @@
 version: 2.1
+description: An orb for running trivy validation against images
 orbs: 
   trivy: skedulo/trivy@0.10.0
 
-jobs:
-  build:
-    docker:
-      - image: 'circleci/python:3.8.2'
-    steps:
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - trivy/validate:
-          image: 'mshallom/practicerepo:0.1.0'
-          severity: 'HIGH,CRITICAL'
-          ignore-unfixed: 'yes'
-          exit-code: 1
-          cve-ignore-list: CVE-2021-3807
+commands:
+  validate:
+    description: Greet the user politely
+    parameters:
+      image:
+        type: string
+        description: Image to be validated
+      severity:
+        type: string
+        description: Comma separated list of severities to include
+        default: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      cve-ignore-list:
+        type: string
+        description: Comma separated list of vulnerabilities to ignore
+        default: 
+      ignore-unfixed:
+        type: boolean
+        description: Whether to ignore unfixed vulnerabilities
+        default: no
+      exit-code:
+        type: integer
+        description: Exit code on failure (0 for warnings, >0 for failure)
+        default: 0
 
+    steps:
+      - run: 
+          name: Run Security scan
+          command: >-
+            docker run 
+            --rm 
+            -v /var/run/docker.sock:/var/run/docker.sock 
+            -v /home/circleci/.cache:/root/.cache/ 
+            --entrypoint='/bin/sh' aquasec/trivy -c "
+              echo << parameters.cve-ignore-list >> | tr ',' '\n' > .trivyignore && 
+              trivy image --no-progress --exit-code << parameters.exit-code >> --severity << parameters.severity >> --ignore-unfixed=<< parameters.ignore-unfixed >> << parameters.image >>
+            "
+
+      jobs:
+        build:
+          docker:
+            - image: circleci/python:3.8.2
+          steps:
+            - setup_remote_docker:
+                docker_layer_caching: true
+            - trivy/validate:
+                image: mshallom/practicerepo:0.1.0
+                severity: HIGH,CRITICAL
+                ignore-unfixed: yes
+                exit-code: 1
+                cve-ignore-list: CVE-2021-3807
 workflows:
   jobs:
     - build
