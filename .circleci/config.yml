@@ -55,5 +55,6 @@ jobs:
           cve-ignore-list: CVE-2021-3807
 
 workflows:
-  jobs:
-    - build
+  my-workflow:
+    jobs:
+      - build
