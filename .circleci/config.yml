@@ -92,7 +92,7 @@ jobs:
         - run:
             name: Building our application with node
             command: |
-              npm install
+              make build
         - save_cache:
             paths: [./node_modules]
             key: application-build
@@ -167,6 +167,6 @@ workflows:
   new-workflow:
     jobs:
       - build-app
-      - audit-app
-      - deploy-frontend:
-          requires: [build-app, audit-app]
+      # - audit-app
+      # - deploy-frontend:
+      #     requires: [build-app, audit-app]
