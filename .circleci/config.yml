@@ -39,8 +39,7 @@ commands:
               fi
             fi
             echo $VERSION >> ~/project/.circleci/version.txt
-          environment:
-            semantic_tag : $VERSION
+          
       - persist_to_workspace:
           root: ~/
           paths:
@@ -87,7 +86,15 @@ jobs:
     docker:
         - image: cimg/node:15.0.1
     steps:
-      - run: echo $semantic_tag
+      - run: 
+          environment:
+            name: "shallom"
+  test2:
+    docker:
+        - image: cimg/node:15.0.1
+    steps:
+      - run: echo $name
+  
   build-app:
       docker:
         - image: cimg/node:15.0.1
@@ -136,8 +143,10 @@ jobs:
           at: ~/
       - run: 
           name: pulling semantic version stored in workspace
-          command: |
-            export TAG=$(cat ~/project/.circleci/version.txt)
+          # command: |
+          #   export TAG=
+          environment:
+            TAG : $(cat ~/project/.circleci/version.txt)
       - run: 
           name: Dockerizing application frontend
           command: |
@@ -169,6 +178,8 @@ workflows:
   new-workflow:
     jobs:
       - test
+      - test2:
+          requires: [test]
       # - deploy-frontend
       # - build-app
       # - audit-app
