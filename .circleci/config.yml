@@ -21,7 +21,9 @@ commands:
     - run:
         name: Check repository for secrets
         command: |
-          gitleaks --repo-path=<< parameters.path >> << parameters.options >>
+          # gitleaks --repo-path=<< parameters.path >> << parameters.options >>
+          gitleaks detect -v
+          gitleaks help
 
 executors:
   docker:
