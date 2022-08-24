@@ -1,5 +1,4 @@
 build:
-	echo $(foo)
 	npm install
 
 audit:

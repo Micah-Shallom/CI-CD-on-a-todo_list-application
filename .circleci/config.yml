@@ -107,7 +107,7 @@ jobs:
       - run:
           name: job running security audit on frontend build
           command: |
-            make build foo="bar"
+            make build
             make audit
 
 
@@ -126,12 +126,10 @@ jobs:
           version: 20.10.14
           docker_layer_caching: true
 
-      # build and push Docker image
-      # using circle_build_num for dummy semantic versioning
       - attach_workspace:
           at: ~/
       - run: 
-          name: Running dummy semantic versioning for image builds using circle ci builds
+          name: pulling semantic version stored in workspace
           command: |
             export TAG=$(cat ~/project/.circleci/version.txt)
             # export TAG=0.1.$CIRCLE_BUILD_NUM
@@ -166,7 +164,8 @@ jobs:
 workflows:
   new-workflow:
     jobs:
-      - build-app
+      - deploy-frontend
+      # - build-app
       # - audit-app
       # - deploy-frontend:
       #     requires: [build-app, audit-app]
