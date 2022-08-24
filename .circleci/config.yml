@@ -63,4 +63,4 @@ jobs:
 workflows:
   test-workflows:
     jobs:
-      - check-local
+      - check_local
