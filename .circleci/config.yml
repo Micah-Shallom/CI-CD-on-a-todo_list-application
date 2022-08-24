@@ -82,6 +82,12 @@ commands:
 ############################################################################################################################
 
 jobs:
+  test:
+    docker:
+      - image: cimg/node:15.0.1
+    steps:
+      - run: export TAG=$(cat ~/project/.circleci/version.txt)
+      - run: echo $TAG
   build-app:
       docker:
         - image: cimg/node:15.0.1
@@ -132,12 +138,10 @@ jobs:
           name: pulling semantic version stored in workspace
           command: |
             export TAG=$(cat ~/project/.circleci/version.txt)
-            # export TAG=0.1.$CIRCLE_BUILD_NUM
       - run: 
           name: Dockerizing application frontend
           command: |
             make docker_build imageName=mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
-            # docker build -t mshallom/practicerepo:$(cat ~/project/.circleci/version.txt) .
 
       - run:
           name: Login into dockerhub
@@ -164,7 +168,7 @@ jobs:
 workflows:
   new-workflow:
     jobs:
-      - deploy-frontend
+      - test
       # - build-app
       # - audit-app
       # - deploy-frontend:
