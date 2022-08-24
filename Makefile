@@ -7,3 +7,12 @@ audit:
 
 docker_build:
 	docker build -t $(imageName) .
+
+push:
+	docker push $(imageName)
+
+compose_up:
+	docker-compose -f docker-compose.yaml up -d 
+
+compose_down:
+	docker-compose -f docker-compose.yaml down

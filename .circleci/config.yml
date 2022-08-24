@@ -82,13 +82,6 @@ commands:
 ############################################################################################################################
 
 jobs:
-  test:
-    docker:
-        - image: cimg/node:15.0.1
-    steps:
-      - run: echo "export REPO=ORION" >> $BASH_ENV; source $BASH_ENV
-      - run: echo $REPO
-  
   build-app:
       docker:
         - image: cimg/node:15.0.1
@@ -151,8 +144,8 @@ jobs:
 
       # Running vulnerability scan on image before remote registry deployment
       - trivy/validate:
-          image: mshallom/practicerepo:$(cat ~/project/.circleci/version.txt)
-          severity: HIGH,CRITICAL
+          image: mshallom/practicerepo:$TAG
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
           ignore-unfixed: yes
           exit-code: 1
           cve-ignore-list: CVE-2021-3807
@@ -160,18 +153,17 @@ jobs:
       - run:
           name: Push image to dockerhub registry
           command: |
-            docker push mshallom/practicerepo:$TAG
+            make push imageName=mshallom/practicerepo:$TAG
       - run:
           name: Running docker compose which runs container for app, and database
           command: |
-            docker-compose -f docker-compose.yaml up -d 
+            make compose_up
 
 workflows:
   new-workflow:
     jobs:
-      - test
-      # - deploy-frontend
-      # - build-app
-      # - audit-app
-      # - deploy-frontend:
-      #     requires: [build-app, audit-app]
+      - deploy-frontend
+      - build-app
+      - audit-app
+      - deploy-frontend:
+          requires: [build-app, audit-app]
