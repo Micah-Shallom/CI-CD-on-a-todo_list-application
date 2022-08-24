@@ -1,6 +1,6 @@
 version: 2.1
 orbs: 
-  gitleaks: upenn-libraries/gitleaks@0.1.2
+  gitleaks: upenn-libraries/gitleaks@1.0.0
 
 # working_directory: /root/project
 
