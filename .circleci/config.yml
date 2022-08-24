@@ -82,6 +82,12 @@ commands:
 ############################################################################################################################
 
 jobs:
+  test:
+    docker:
+        - image: cimg/node:15.0.1
+    steps:
+      - run: TAG="Shallom"
+      - run: echo $TAG
   build-app:
       docker:
         - image: cimg/node:15.0.1
@@ -162,7 +168,8 @@ jobs:
 workflows:
   new-workflow:
     jobs:
-      - deploy-frontend
+      - test
+      # - deploy-frontend
       # - build-app
       # - audit-app
       # - deploy-frontend:
