@@ -170,8 +170,6 @@ workflows:
   new-workflow:
     jobs:
       - test
-      - test2:
-          requires: [test]
       # - deploy-frontend
       # - build-app
       # - audit-app
