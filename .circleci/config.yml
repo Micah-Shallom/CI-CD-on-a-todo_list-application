@@ -201,7 +201,7 @@ workflows:
       - build-app
       - audit-app
       - test-app
-      - scan_for_secrets
+      - scan_for_secrets:
           requires: [build-app, audit-app, test-app]
       - deploy-frontend:
           requires: [scan_for_secrets]
