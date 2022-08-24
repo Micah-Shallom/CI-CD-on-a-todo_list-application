@@ -34,7 +34,7 @@ jobs:
       - run:
           name: List Commits
           command: |
-            git rev-list $(git merge-base master << parameters.branch >>)..<< parameters.branch >> > << parameters.filename >>
+            git rev-list $(git merge-base main << parameters.branch >>)..<< parameters.branch >> > << parameters.filename >>
       - run:
           name: Run Gitleaks
           command: |
