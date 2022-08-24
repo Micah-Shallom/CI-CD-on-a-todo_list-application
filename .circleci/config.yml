@@ -1,6 +1,6 @@
 version: 2.1
 orbs: 
-  gitleaks: upenn-libraries/gitleaks@0.1.0
+  gitleaks: upenn-libraries/gitleaks@0.1.2
 
 # working_directory: /root/project
 
@@ -19,9 +19,9 @@ commands:
         type: string
     steps:
     - run:
+        name: Check repository for secrets
         command: |
           gitleaks --repo-path=<< parameters.path >> << parameters.options >>
-        name: Check repository for secrets
 
 executors:
   docker:
