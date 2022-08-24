@@ -24,7 +24,7 @@ jobs:
         type: string
         description: |
           Pick the branch to run Gitleaks on
-        default: ${CIRCLE_BRANCH}
+        default: main
     steps:
       - checkout
       - run:
