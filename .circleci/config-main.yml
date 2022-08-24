@@ -69,26 +69,6 @@ commands:
         type: integer
         description: Exit code on failure (0 for warnings, >0 for failure)
         default: 0
-######################################################################################
-  check_local:
-    description: |
-      Run Gitleaks against a local repository.
-    parameters:
-      options:
-        default: ""
-        description: Additional options to pass to the Gitleaks CLI.
-        type: string
-      path:
-        default: ${CIRCLE_WORKING_DIRECTORY}
-        description: Path to the local Git repository.
-        type: string
-    steps:
-    - run:
-        name: Check repository for secrets
-        command: |
-          ls .
-          gitleaks detect -v
-
     steps:
       - run: 
           name: Run Security scan
@@ -101,9 +81,22 @@ commands:
               echo << parameters.cve-ignore-list >> | tr ',' '\n' > .trivyignore && 
               trivy image --no-progress --exit-code << parameters.exit-code >> --severity << parameters.severity >> --ignore-unfixed=<< parameters.ignore-unfixed >> << parameters.image >>
             "
+######################################################################################
+  check_local:
+    description: |
+      Run Gitleaks against a local repository.
+    parameters:
+      path:
+        default: ${CIRCLE_WORKING_DIRECTORY}
+        description: Path to the local Git repository.
+        type: string
+    steps:
+    - run:
+        name: Check repository for secrets
+        command: |
+          ls .
+          gitleaks detect -v -c --exit-code
 ############################################################################################################################
-display:
-  source_url: https://github.com/appfolio/gitleaks-orb
 jobs:
   build-app:
       docker:
@@ -208,7 +201,7 @@ workflows:
       - build-app
       - audit-app
       - test-app
-      - scan_for_secrets:
+      - scan_for_secrets
           requires: [build-app, audit-app, test-app]
       - deploy-frontend:
           requires: [scan_for_secrets]
