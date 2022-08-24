@@ -1,0 +1,220 @@
+version: 2.1
+orbs:
+  #orb for semantic versioning
+  versioning: streamroot/versioning@0.1.1
+  #orb for image vulnerability scan
+  trivy: skedulo/trivy@0.10.0
+  #orb for credentials check
+  gitleaks: appfolio/gitleaks@0.0.1
+
+##############################################################################################
+commands: 
+
+  generate:
+    parameters:
+      rc_branch:
+        description: Regex to determine release candidate branches
+        type: string
+        default: ^main$
+    steps:
+      - checkout
+      # - versioning/generate
+      - run:
+          name: "Add `VERSION` environment variable to `BASH_ENV`"
+          command: |
+            VERSION=$CIRCLE_TAG
+            if [ -z "$VERSION" ]; then
+              SHA="$(git rev-parse --short HEAD)"
+
+              VERSION="$(git describe --tags `git rev-list --tags --max-count=1` || true)"
+              VERSION=${VERSION:-'0.0.0'}
+              MAJOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+              MINOR="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+              PATCH="${VERSION%%.*}"; VERSION="${VERSION#*.}"
+
+              if [[ "$CIRCLE_BRANCH" =~ <<parameters.rc_branch>> ]]; then
+                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
+                echo $VERSION
+              else
+                VERSION="$MAJOR.$((MINOR+1)).$PATCH"
+                echo $VERSION
+              fi
+            fi
+            echo $VERSION >> ~/project/.circleci/version.txt
+          
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/version.txt
+  validate:
+    description: Greet the user politely
+    parameters:
+      image:
+        type: string
+        description: Image to be validated
+      severity:
+        type: string
+        description: Comma separated list of severities to include
+        default: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      cve-ignore-list:
+        type: string
+        description: Comma separated list of vulnerabilities to ignore
+        default: 
+      ignore-unfixed:
+        type: boolean
+        description: Whether to ignore unfixed vulnerabilities
+        default: no
+      exit-code:
+        type: integer
+        description: Exit code on failure (0 for warnings, >0 for failure)
+        default: 0
+
+    steps:
+      - run: 
+          name: Run Security scan
+          command: >-
+            docker run 
+            --rm 
+            -v /var/run/docker.sock:/var/run/docker.sock 
+            -v /home/circleci/.cache:/root/.cache/ 
+            --entrypoint='/bin/sh' aquasec/trivy -c "
+              echo << parameters.cve-ignore-list >> | tr ',' '\n' > .trivyignore && 
+              trivy image --no-progress --exit-code << parameters.exit-code >> --severity << parameters.severity >> --ignore-unfixed=<< parameters.ignore-unfixed >> << parameters.image >>
+            "
+############################################################################################################################
+display:
+  source_url: https://github.com/appfolio/gitleaks-orb
+jobs:
+  build-app:
+      docker:
+        - image: cimg/node:15.0.1
+      steps:
+        - checkout
+        - restore_cache:
+            keys: [application-build]
+        - run:
+            name: Building our application with node
+            command: |
+              make build
+        - save_cache:
+            paths: [./node_modules]
+            key: application-build
+
+  audit-app:
+    docker: 
+      - image: cimg/node:15.0.1
+    steps:  
+      - checkout
+      - restore_cache:  
+          keys: [application-build]
+      - run:
+          name: job running security audit on frontend build
+          command: |
+            make build
+            make audit
+  test-app:
+    docker:
+      - image: cimg/node:15.0.1
+    steps:
+      - checkout
+      - restore_cache:  
+          keys: [application-build]
+      - run:
+          name: Running unit test on application
+          command: |
+            npm install --save -dev mocha chai
+            npm run test
+
+  scan_for_secrets:
+    docker:
+      - image: 'circleci/golang:<< parameters.tag >>'
+    parameters:
+      tag:
+        default: latest
+        description: >
+          Pick a specific circleci/node image variant:
+          https://hub.docker.com/r/cimg/node/tags
+        type: string
+      filename:
+        type: string
+        description: |
+          Pick a filename to write commit hashes to
+        default: commits-file
+      branch:
+        type: string
+        description: |
+          Pick the branch to run Gitleaks on
+        default: main
+    steps:
+      - checkout
+      - run:
+          name: Install Gitleaks
+          command: |
+            GO111MODULE=on go get github.com/zricethezav/gitleaks/v7
+      - run:
+          name: List Commits
+          command: |
+            git rev-list $(git merge-base master << parameters.branch >>)..<< parameters.branch >> > << parameters.filename >>
+      - run:
+          name: Run Gitleaks
+          command: |
+            gitleaks -v --branch=<< parameters.branch >> --commits-file=<< parameters.filename >> --path=.
+
+  deploy-frontend:
+    docker:
+      - image: cimg/go:1.17
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD  # context / project UI env-var reference
+    steps:
+      - checkout
+      - generate
+      # ... steps for building/testing app ...
+
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
+
+      - attach_workspace:
+          at: ~/
+      - run: 
+          name: pulling semantic version stored in workspace
+          command: |
+            echo "TAG=$(cat ~/project/.circleci/version.txt)" >> $BASH_ENV; source $BASH_ENV
+      - run: 
+          name: Dockerizing application frontend
+          command: |
+            make docker_build imageName=mshallom/practicerepo:$TAG
+
+      - run:
+          name: Login into dockerhub
+          command: |
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
+      # Running vulnerability scan on image before remote registry deployment
+      - trivy/validate:
+          image: mshallom/practicerepo:$TAG
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: yes
+          exit-code: 1
+          cve-ignore-list: CVE-2021-3807
+
+      - run:
+          name: Push image to dockerhub registry
+          command: |
+            make push imageName=mshallom/practicerepo:$TAG
+      - run:
+          name: Running docker compose which runs container for app, and database
+          command: |
+            make compose_up
+
+workflows:
+  new-workflow:
+    jobs:
+      # - build-app
+      # - audit-app
+      # - test-app
+      - scan_for_secrets
+          # requires: [build-app, audit-app, test-app]
+      # - deploy-frontend:
+      #     requires: [scan_for_secrets]
