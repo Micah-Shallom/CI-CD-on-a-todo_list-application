@@ -2,17 +2,11 @@ version: 2.1
 orbs: 
   gitleaks: upenn-libraries/gitleaks@1.0.0
 
-# working_directory: /root/project
-
 commands:
   check_local:
     description: |
       Run Gitleaks against a local repository.
     parameters:
-      options:
-        default: ""
-        description: Additional options to pass to the Gitleaks CLI.
-        type: string
       path:
         default: ${CIRCLE_WORKING_DIRECTORY}
         description: Path to the local Git repository.
@@ -21,47 +15,19 @@ commands:
     - run:
         name: Check repository for secrets
         command: |
-          # gitleaks --repo-path=<< parameters.path >> << parameters.options >>
+          # gitleaks --repo-path=<< parameters.path >>
           ls .
-          gitleaks detect -v
+          gitleaks detect -v --exit-code
 
-executors:
-  docker:
-    description: |
-      Use a Gitleaks Docker container to check the repository for secrets.
-    docker:
-    - image: << parameters.image >>
-    parameters:
-      image:
-        default: zricethezav/gitleaks
-        description: |
-          The Gitleaks Docker image to use when checking a repository. It is
-          recommended that you publish your own image instead of trusting an image
-          that you don't control.
-        type: string
 jobs:
   check_local:
     description: |
       Clone a Git repository and check it for secrets.
-    executor:
-      image: << parameters.image >>
-      name: docker
-    parameters:
-      image:
-        default: zricethezav/gitleaks
-        description: |
-          The Gitleaks Docker image to use when checking a repository. It is
-          recommended that you publish your own image instead of trusting an image
-          that you don't control.
-        type: string
-      options:
-        default: ""
-        description: Additional options to pass to the Gitleaks CLI.
-        type: string
+    docker:
+      - image: zricethezav/gitleaks
     steps:
     - checkout
-    - check_local:
-        options: << parameters.options >>
+    - check_local
 
 workflows:
   test-workflows:

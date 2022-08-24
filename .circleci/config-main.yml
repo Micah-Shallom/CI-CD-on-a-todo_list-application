@@ -5,11 +5,11 @@ orbs:
   #orb for image vulnerability scan
   trivy: skedulo/trivy@0.10.0
   #orb for credentials check
-  gitleaks: appfolio/gitleaks@0.0.1
+  gitleaks: upenn-libraries/gitleaks@1.0.0
 
 ##############################################################################################
 commands: 
-
+#############################################################
   generate:
     parameters:
       rc_branch:
@@ -46,6 +46,7 @@ commands:
           root: ~/
           paths:
             - project/.circleci/version.txt
+############################################################################
   validate:
     description: Greet the user politely
     parameters:
@@ -68,6 +69,26 @@ commands:
         type: integer
         description: Exit code on failure (0 for warnings, >0 for failure)
         default: 0
+######################################################################################
+  check_local:
+    description: |
+      Run Gitleaks against a local repository.
+    parameters:
+      options:
+        default: ""
+        description: Additional options to pass to the Gitleaks CLI.
+        type: string
+      path:
+        default: ${CIRCLE_WORKING_DIRECTORY}
+        description: Path to the local Git repository.
+        type: string
+    steps:
+    - run:
+        name: Check repository for secrets
+        command: |
+          # gitleaks --repo-path=<< parameters.path >> << parameters.options >>
+          ls .
+          gitleaks detect -v
 
     steps:
       - run: 
