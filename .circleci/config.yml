@@ -86,9 +86,12 @@ jobs:
     docker:
         - image: cimg/node:15.0.1
     steps:
-      - run: 
+      - run:
+          name: "Hello"
+          command: |
+            ls
           environment:
-            name: "shallom"
+            name: "Shallom"
   test2:
     docker:
         - image: cimg/node:15.0.1
@@ -143,8 +146,9 @@ jobs:
           at: ~/
       - run: 
           name: pulling semantic version stored in workspace
-          # command: |
-          #   export TAG=
+          command: |
+            # export TAG=
+            ls
           environment:
             TAG : $(cat ~/project/.circleci/version.txt)
       - run: 
