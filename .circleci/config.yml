@@ -86,17 +86,8 @@ jobs:
     docker:
         - image: cimg/node:15.0.1
     steps:
-      - run:
-          name: "Hello"
-          command: |
-            ls
-          environment:
-            name: "Shallom"
-  test2:
-    docker:
-        - image: cimg/node:15.0.1
-    steps:
-      - run: echo $name
+      - run: echo "export REPO=ORION" >> $BASH_ENV; source $BASH_ENV
+      - run: echo $REPO
   
   build-app:
       docker:
@@ -147,10 +138,7 @@ jobs:
       - run: 
           name: pulling semantic version stored in workspace
           command: |
-            # export TAG=
-            ls
-          environment:
-            TAG : $(cat ~/project/.circleci/version.txt)
+            echo "TAG=$(cat ~/project/.circleci/version.txt)" >> $BASH_ENV; source $BASH_ENV
       - run: 
           name: Dockerizing application frontend
           command: |
