@@ -86,7 +86,6 @@ commands:
     - run:
         name: Check repository for secrets
         command: |
-          # gitleaks --repo-path=<< parameters.path >> << parameters.options >>
           ls .
           gitleaks detect -v
 
@@ -147,39 +146,13 @@ jobs:
             npm run test
 
   scan_for_secrets:
+    description: |
+      Clone a Git repository and check it for secrets.
     docker:
-      - image: 'circleci/golang:<< parameters.tag >>'
-    parameters:
-      tag:
-        default: latest
-        description: >
-          Pick a specific circleci/node image variant:
-          https://hub.docker.com/r/cimg/node/tags
-        type: string
-      filename:
-        type: string
-        description: |
-          Pick a filename to write commit hashes to
-        default: commits-file
-      branch:
-        type: string
-        description: |
-          Pick the branch to run Gitleaks on
-        default: main
+      - image: zricethezav/gitleaks
     steps:
-      - checkout
-      - run:
-          name: Install Gitleaks
-          command: |
-            GO111MODULE=on go get github.com/zricethezav/gitleaks/v7
-      - run:
-          name: List Commits
-          command: |
-            git rev-list $(git merge-base master << parameters.branch >>)..<< parameters.branch >> > << parameters.filename >>
-      - run:
-          name: Run Gitleaks
-          command: |
-            gitleaks -v --branch=<< parameters.branch >> --commits-file=<< parameters.filename >> --path=.
+    - checkout
+    - check_local
 
   deploy-frontend:
     docker:
@@ -232,10 +205,10 @@ jobs:
 workflows:
   new-workflow:
     jobs:
-      # - build-app
-      # - audit-app
-      # - test-app
-      - scan_for_secrets
-          # requires: [build-app, audit-app, test-app]
-      # - deploy-frontend:
-      #     requires: [scan_for_secrets]
+      - build-app
+      - audit-app
+      - test-app
+      - scan_for_secrets:
+          requires: [build-app, audit-app, test-app]
+      - deploy-frontend:
+          requires: [scan_for_secrets]
