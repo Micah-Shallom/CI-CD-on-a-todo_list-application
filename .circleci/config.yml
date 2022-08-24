@@ -39,7 +39,8 @@ commands:
               fi
             fi
             echo $VERSION >> ~/project/.circleci/version.txt
-            cat ~/project/.circleci/version.txt
+          environment:
+            semantic_tag : $VERSION
       - persist_to_workspace:
           root: ~/
           paths:
@@ -86,8 +87,7 @@ jobs:
     docker:
         - image: cimg/node:15.0.1
     steps:
-      - run: TAG="Shallom"
-      - run: echo $TAG
+      - run: echo $semantic_tag
   build-app:
       docker:
         - image: cimg/node:15.0.1
