@@ -1,4 +1,5 @@
 build:
+	npm install --save -dev mocha chai
 	npm install
 
 audit:
