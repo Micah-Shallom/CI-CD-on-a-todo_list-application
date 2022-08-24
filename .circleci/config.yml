@@ -1,32 +1,46 @@
 version: 2.1
 orbs: 
-  gitleaks: upenn-libraries/gitleaks@1.0.0
+  gitleaks: appfolio/gitleaks@0.0.1
 
+display:
+  source_url: https://github.com/appfolio/gitleaks-orb
 jobs:
-    check_local:
+  scan_for_secrets:
+    docker:
+      - image: 'circleci/golang:<< parameters.tag >>'
+    parameters:
+      tag:
+        default: latest
+        description: >
+          Pick a specific circleci/node image variant:
+          https://hub.docker.com/r/cimg/node/tags
+        type: string
+      filename:
+        type: string
         description: |
-            Clone a Git repository and check it for secrets.
-        executor:
-            image: << parameters.image >>
-            name: docker
-        parameters:
-            image:
-                default: zricethezav/gitleaks
-                description: |
-                    The Gitleaks Docker image to use when checking a repository. It is
-                    recommended that you publish your own image instead of trusting an image
-                    that you don't control.
-                type: string
-            options:
-                default: ""
-                description: Additional options to pass to the Gitleaks CLI.
-                type: string
-        steps:
-            - checkout
-            - check_local:
-                options: << parameters.options >>
-        # working_directory: /root/project
+          Pick a filename to write commit hashes to
+        default: commits-file
+      branch:
+        type: string
+        description: |
+          Pick the branch to run Gitleaks on
+        default: ${CIRCLE_BRANCH}
+    steps:
+      - checkout
+      - run:
+          name: Install Gitleaks
+          command: |
+            GO111MODULE=on go get github.com/zricethezav/gitleaks/v7
+      - run:
+          name: List Commits
+          command: |
+            git rev-list $(git merge-base master << parameters.branch >>)..<< parameters.branch >> > << parameters.filename >>
+      - run:
+          name: Run Gitleaks
+          command: |
+            gitleaks -v --branch=main --commits-file=<< parameters.filename >> --path=.
+
 workflows:
-  check_for_secrets:
+  test-workflow:
     jobs:
-      - gitleaks/check_local
+      - scan_for_secrets
