@@ -82,7 +82,8 @@ commands:
               trivy image --no-progress --exit-code << parameters.exit-code >> --severity << parameters.severity >> --ignore-unfixed=<< parameters.ignore-unfixed >> << parameters.image >>
             "
 ############################################################################################################################
-
+display:
+  source_url: https://github.com/appfolio/gitleaks-orb
 jobs:
   build-app:
       docker:
@@ -143,7 +144,7 @@ jobs:
         type: string
         description: |
           Pick the branch to run Gitleaks on
-        default: ${CIRCLE_BRANCH}
+        default: main
     steps:
       - checkout
       - run:
@@ -210,10 +211,10 @@ jobs:
 workflows:
   new-workflow:
     jobs:
-      - build-app
-      - audit-app
-      - test-app
-      - scan_for_secrets:
-          requires: [build-app, audit-app, test-app]
-      - deploy-frontend:
-          requires: [scan_for_secrets]
+      # - build-app
+      # - audit-app
+      # - test-app
+      - scan_for_secrets
+          # requires: [build-app, audit-app, test-app]
+      # - deploy-frontend:
+      #     requires: [scan_for_secrets]
