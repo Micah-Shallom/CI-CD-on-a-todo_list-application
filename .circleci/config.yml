@@ -2,6 +2,8 @@ version: 2.1
 orbs: 
   gitleaks: upenn-libraries/gitleaks@0.1.0
 
+# working_directory: /root/project
+
 commands:
   check_local:
     description: |
@@ -58,7 +60,6 @@ jobs:
     - checkout
     - check_local:
         options: << parameters.options >>
-    working_directory: /root/project
 
 workflows:
   test-workflows:
