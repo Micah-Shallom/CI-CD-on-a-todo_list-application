@@ -17,7 +17,7 @@ commands:
         command: |
           # gitleaks --repo-path=<< parameters.path >>
           ls .
-          gitleaks detect -v --exit-code
+          gitleaks detect -v -c --exit-code
 
 jobs:
   check_local:
