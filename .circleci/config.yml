@@ -87,7 +87,7 @@ jobs:
       - image: cimg/node:15.0.1
     steps:
       - run: export TAG="Shallom"
-      - run: echo $TAG
+      - run: echo $(TAG)
   build-app:
       docker:
         - image: cimg/node:15.0.1
