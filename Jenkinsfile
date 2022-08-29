@@ -4,7 +4,7 @@ pipeline{
    agent {
         docker {
             image 'node:16.13.1-alpine'
-            args '-u root:root'
+            args '-u root'
             args '-v $HOME/.m2:/root/.m2'
         }
     }
