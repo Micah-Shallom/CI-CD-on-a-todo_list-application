@@ -1,6 +1,6 @@
 {
   "name": "simpletodoapp",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "Simple Todo App",
   "main": "app.js",
   "scripts": {
