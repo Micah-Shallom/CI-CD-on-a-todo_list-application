@@ -1,11 +1,9 @@
 def gv
 
 pipeline{
-    agent{
-        label "node"
-    }
+    agent any
     stages{
-        
+
         stage("init"){
             steps{
                 echo "========executing app initialization========"
