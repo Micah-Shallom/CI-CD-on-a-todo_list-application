@@ -8,4 +8,8 @@ def auditApp(){
     sh "make audit"
 }
 
+def testApp(){
+    sh "make test"
+}
+
 return this

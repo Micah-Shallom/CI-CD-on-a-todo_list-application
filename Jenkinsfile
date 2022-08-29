@@ -5,7 +5,7 @@ pipeline{
         docker {
             image 'node:16.13.1-alpine'
             args '-u root --privileged'
-            args '-v $Jenkins_Home:/root/.m2'
+            // args '-v $Jenkins_Home:/root/.m2'
         }
     }
     stages{
@@ -33,6 +33,14 @@ pipeline{
                 script{
                     echo "====++++Auditing Application++++===="
                     gv.auditApp()
+                }
+            }
+        }
+        stage("testing application"){
+            steps{
+                script{
+                    echo "====++++Testing Application++++===="
+                    gv.testApp()
                 }
             }
         }

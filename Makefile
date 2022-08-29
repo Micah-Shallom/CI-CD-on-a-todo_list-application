@@ -5,6 +5,10 @@ audit:
 	npm audit fix --audit-level=critical --force
 	npm audit --audit-level=critical
 
+test:
+	npm install --save -dev mocha chai
+	npm run test
+
 docker_build:
 	docker build -t $(imageName) .
 
