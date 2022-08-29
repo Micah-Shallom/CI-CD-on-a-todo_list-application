@@ -3,9 +3,6 @@ orbs:
   swissknife: roopakv/swissknife@0.29.0
 
 
-jobs:
-  - test
-
 workflows:
   my-workflow:
     jobs:
