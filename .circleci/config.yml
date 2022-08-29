@@ -2,6 +2,17 @@ version: 2.1
 orbs:
   swissknife: roopakv/swissknife@0.29.0
 
+executors:
+  main:
+    docker:
+    - image: cimg/go:1.17
+
+jobs:
+  test:
+    executor: main
+    steps:
+      - checkout
+
 
 workflows:
   my-workflow:
