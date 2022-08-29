@@ -1,4 +1,5 @@
 def buildApp(){
+    sh "npm install make"
     sh "make build"
 }
 
