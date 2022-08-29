@@ -16,22 +16,21 @@ pipeline{
                     gv =  load "scripts.groovy"
                 }
             }
-            post{
-                success{
-                    echo "========A executed successfully========"
-                }
-                failure{
-                    echo "========A execution failed========"
-                }
-            }
         }
 
         stage("building application"){
-            
             steps{
                 script{
                     echo "====++++Building Application++++===="
                     gv.buildApp()
+                }
+            }
+        }
+        stage("auditing application"){
+            steps{
+                script{
+                    echo "====++++Auditing Application++++===="
+                    gv.auditApp()
                 }
             }
         }

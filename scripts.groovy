@@ -1,5 +1,10 @@
 def buildApp(){
-    sh "npm i"
+    sh "make build"
+}
+
+def auditApp(){
+    sh "make build"
+    sh "make audit"
 }
 
 return this
