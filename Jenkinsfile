@@ -3,7 +3,7 @@ def gv
 pipeline{
    agent {
         docker {
-            image 'cimg/node:15.0.1'
+            image 'node:16.13.1-alpine'
             args '-v $HOME/.m2:/root/.m2'
         }
     }
