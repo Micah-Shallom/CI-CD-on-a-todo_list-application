@@ -1,5 +1,5 @@
 def buildApp(){
-    sh "make build"
+    sh "ls"
 }
 
 def auditApp(){
