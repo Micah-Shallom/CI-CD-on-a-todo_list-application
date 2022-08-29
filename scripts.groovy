@@ -1,5 +1,6 @@
 def buildApp(){
-    sh "ls"
+    sh "apk add make"
+    sh "make build"
 }
 
 def auditApp(){
