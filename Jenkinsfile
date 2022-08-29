@@ -2,10 +2,11 @@ def gv
 
 pipeline{
    agent {
-        docker {
-            image 'node:16.13.1-alpine'
-            args '-v $HOME/.m2:/root/.m2'
-        }
+        node('docker') {
+            docker.image('node:16.13.1-alpine').inside(' -u 0') {
+                sh 'apk add curl'
+  }
+}
     }
     stages{
 
