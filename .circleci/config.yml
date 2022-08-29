@@ -8,14 +8,8 @@ executors:
     - image: cimg/go:1.17
 
 jobs:
-  test:
-    executor: main
-    steps:
-      - checkout
-      - swissknife/build_and_check_circle_config:
-          custom-error-message: Please run "make circle-config" and push up.
-          fail-if-dirty: true
-
+  test
+    
 
 workflows:
   my-workflow:
