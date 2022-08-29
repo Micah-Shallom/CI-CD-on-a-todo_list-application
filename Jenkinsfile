@@ -5,8 +5,8 @@ pipeline{
         docker {
             image 'node:16.13.1-alpine'
             args '-u root --privileged'
+            args '-v $Jenkins_Home:/root/.m2'
         }
-            // args '-v $HOME/.m2:/root/.m2'
     }
     stages{
 
