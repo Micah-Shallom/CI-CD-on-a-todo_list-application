@@ -5,7 +5,6 @@ pipeline{
         docker {
             image 'node:16.13.1-alpine'
             args '-u root --privileged'
-            // args '-v $Jenkins_Home:/root/.m2'
         }
     }
     stages{
@@ -42,6 +41,24 @@ pipeline{
                     echo "====++++Testing Application++++===="
                     gv.testApp()
                 }
+            }
+        }
+        stage("scan_for_secrets"){
+            steps{
+                script{
+                    echo "====++++Scan App For Secrets++++===="
+                    gv.secretScan()
+                }
+            }
+        }
+        stage("Building and Testing Image"){
+            steps{
+                    echo "====++++Building Image++++===="
+                    gv.imageBuild()
+                    echo "====++++Trivy Scan Image++++===="
+                    gv.trivyScan()
+                    echo "====++++Push Image++++===="
+                    gv.pushImageToHub()
             }
         }
     }
