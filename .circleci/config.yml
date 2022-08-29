@@ -13,8 +13,8 @@ jobs:
     steps:
       - checkout
       - swissknife/build_and_check_circle_config:
-        custom-error-message: Please run "make circle-config" and push up.
-        fail-if-dirty: true
+          custom-error-message: Please run "make circle-config" and push up.
+          fail-if-dirty: true
 
 
 workflows:
