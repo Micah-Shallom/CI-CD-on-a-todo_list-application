@@ -53,12 +53,14 @@ pipeline{
         }
         stage("Building and Testing Image"){
             steps{
+                script{
                     echo "====++++Building Image++++===="
                     gv.imageBuild()
                     echo "====++++Trivy Scan Image++++===="
                     gv.trivyScan()
                     echo "====++++Push Image++++===="
                     gv.pushImageToHub()
+                }
             }
         }
     }
