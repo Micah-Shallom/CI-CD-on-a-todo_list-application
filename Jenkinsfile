@@ -4,9 +4,9 @@ pipeline{
    agent {
         docker {
             image 'node:16.13.1-alpine'
-            args '-u root'
-            args '-v $HOME/.m2:/root/.m2'
+            args '-u root --privileged'
         }
+            // args '-v $HOME/.m2:/root/.m2'
     }
     stages{
 
@@ -14,6 +14,7 @@ pipeline{
             steps{
                 echo "========executing app initialization========"
                 script{
+                    checkout scm
                     gv =  load "scripts.groovy"
                 }
             }
