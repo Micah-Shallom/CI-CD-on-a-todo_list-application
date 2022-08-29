@@ -1,7 +1,10 @@
 def gv
 
 pipeline{
-    agent any
+    agent {
+        docker { image 'node:16.13.1-alpine' }
+        args '-v $HOME/.m2:/root/.m2'
+    }
     stages{
 
         stage("init"){
@@ -22,6 +25,7 @@ pipeline{
         }
 
         stage("building application"){
+            
             steps{
                 script{
                     echo "====++++Building Application++++===="
