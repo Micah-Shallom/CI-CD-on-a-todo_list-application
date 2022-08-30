@@ -21,7 +21,11 @@ pipeline{
         }
 
         stage("building application"){
-            agent none
+            agent {
+                docker {
+                    image 'docker'
+                }
+            }
             steps{
                 script{
                     echo "====++++Building Application++++===="
