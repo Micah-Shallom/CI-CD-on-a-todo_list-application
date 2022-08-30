@@ -4,7 +4,7 @@ pipeline{
    agent {
         docker {
             // image 'node:16.13.1-alpine'
-            image 'cimg/node:15.0.1'
+            image 'node:latest'
             args '-u root --privileged'
         }
     }
