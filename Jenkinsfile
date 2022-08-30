@@ -53,9 +53,7 @@ pipeline{
         //     }
         // }
         stage("Building and Testing Image"){
-            environment {
-                HOME="."
-            }
+            
             steps{
                 script{
                     echo "====++++Building Image++++===="
