@@ -17,8 +17,6 @@ def secretScan(){
 }
 
 def imageBuild(){
-        sh "apk add docker "
-        sh "service docker start"
         sh "make docker_build imageName=mshallom/practicerepo:1.0"
 //     withDockerContainer(image: 'docker', toolName: 'docker') {
 //         sh "make docker_build imageName=mshallom/practicerepo:1.0"

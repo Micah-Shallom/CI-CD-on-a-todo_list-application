@@ -21,6 +21,7 @@ pipeline{
         }
 
         stage("building application"){
+            agent none
             steps{
                 script{
                     echo "====++++Building Application++++===="
