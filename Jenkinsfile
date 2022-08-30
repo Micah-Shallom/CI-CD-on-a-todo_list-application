@@ -1,12 +1,13 @@
 def gv
 
 pipeline{
-   agent {
-        docker {
-            image 'node:16.13.1-alpine'
-            args '-u root --privileged'
-        }
-    }
+//    agent {
+//         docker {
+//             image 'node:16.13.1-alpine'
+//             args '-u root --privileged'
+//         }
+//     }
+    agent any 
     stages{
 
         stage("init"){
