@@ -1,7 +1,7 @@
 def buildApp(){
+    sh "apk add make"
     sh "make build"
 }
-    // sh "apk add make"
 
 def auditApp(){
     sh "make build"
@@ -17,7 +17,8 @@ def secretScan(){
 }
 
 def imageBuild(){
-    sh "make docker_build imageName=mshallom/practicerepo:1.0"
+    // sh "make docker_build imageName=mshallom/practicerepo:1.0"
+    sh "docker build -t mshallom/practicerepo:1.0 ."
 }
 
 def trivyScan(){
