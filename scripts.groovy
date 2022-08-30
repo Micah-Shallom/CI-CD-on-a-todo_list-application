@@ -1,5 +1,5 @@
 def buildApp(){
-    sh "apk add make"
+    // sh "apk add make"
     sh "make build"
 }
 
