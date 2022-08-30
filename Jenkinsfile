@@ -7,7 +7,6 @@ pipeline{
             args '-u root --privileged'
         }
     }
-    agent any 
     stages{
 
         stage("init"){
