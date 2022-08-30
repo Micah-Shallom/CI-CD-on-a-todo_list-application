@@ -17,9 +17,11 @@
 // }
 
 def imageBuild(){
-    withDockerContainer(image: 'docker', toolName: 'docker') {
+        // sh "apk add docker "
         sh "make docker_build imageName=mshallom/practicerepo:1.0"
-}
+//     withDockerContainer(image: 'docker', toolName: 'docker') {
+//         sh "make docker_build imageName=mshallom/practicerepo:1.0"
+// }
 }
 
 def trivyScan(){
