@@ -1,23 +1,23 @@
-def buildApp(){
-    sh "apk add make"
-    sh "make build"
-}
+// def buildApp(){
+//     sh "apk add make"
+//     sh "make build"
+// }
 
-def auditApp(){
-    sh "make build"
-    sh "make audit"
-}
+// def auditApp(){
+//     sh "make build"
+//     sh "make audit"
+// }
 
-def testApp(){
-    sh "make test"
-}
+// def testApp(){
+//     sh "make test"
+// }
 
-def secretScan(){
-    sh "echo Scanning for credentials "
-}
+// def secretScan(){
+//     sh "echo Scanning for credentials "
+// }
 
 def imageBuild(){
-    withDockerContainer(image: 'node:16.13.1-alpine', toolName: 'docker') {
+    withDockerContainer(image: 'node', toolName: 'docker') {
         sh "make docker_build imageName=mshallom/practicerepo:1.0"
 }
 }
