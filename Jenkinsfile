@@ -3,8 +3,7 @@ def gv
 pipeline{
    agent {
         docker {
-            // image 'node:16.13.1-alpine'
-            image 'node:latest'
+            image 'node:16.13.1-alpine'
             args '-u root --privileged'
         }
     }
