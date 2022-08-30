@@ -54,6 +54,9 @@ pipeline{
         // }
         stage("Building and Testing Image"){
             steps{
+                environment {
+                  HOME="."
+                }
                 script{
                     echo "====++++Building Image++++===="
                     gv.imageBuild()
