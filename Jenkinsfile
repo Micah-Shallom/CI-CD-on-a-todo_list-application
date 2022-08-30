@@ -7,9 +7,7 @@ pipeline{
             args '-u root --privileged'
         }
     }
-    tools{
-        Docker "docker"
-    }
+    
     stages{
 
         stage("init"){
