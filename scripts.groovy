@@ -17,7 +17,7 @@
 // }
 
 def imageBuild(){
-    withDockerContainer(toolName: 'docker') {
+    withDockerContainer(image: 'docker', toolName: 'docker') {
         sh "make docker_build imageName=mshallom/practicerepo:1.0"
 }
 }
