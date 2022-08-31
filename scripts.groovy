@@ -1,20 +1,20 @@
-def buildApp(){
-    // sh "apk add make"
-    sh "make build"
-}
+// def buildApp(){
+//     // sh "apk add make"
+//     sh "make build"
+// }
 
-def auditApp(){
-    sh "make build"
-    sh "make audit"
-}
+// def auditApp(){
+//     sh "make build"
+//     sh "make audit"
+// }
 
-def testApp(){
-    sh "make test"
-}
+// def testApp(){
+//     sh "make test"
+// }
 
-def secretScan(){
-    sh "echo Scanning for credentials "
-}
+// def secretScan(){
+//     sh "echo Scanning for credentials "
+// }
 
 def imageBuild(){
     sh "docker build -t mshallom/practicerepo:1.0 ."

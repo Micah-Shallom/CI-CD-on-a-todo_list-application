@@ -3,15 +3,15 @@ def gv
 pipeline{
     agent any
     stages{
-        // stage("init"){
-        //     steps{
-        //         echo "========executing app initialization========"
-        //         script{
-        //             checkout scm
-        //             gv =  load "scripts.groovy"
-        //         }
-        //     }
-        // }
+        stage("init"){
+            steps{
+                echo "========executing app initialization========"
+                script{
+                    checkout scm
+                    gv =  load "scripts.groovy"
+                }
+            }
+        }
 
         // stage("building application"){
         //     steps{
