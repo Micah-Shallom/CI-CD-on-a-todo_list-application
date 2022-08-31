@@ -16,7 +16,7 @@
 // }
 
 def imageBuild(String IMAGE_NAME){
-    sh "make docker_build ${IMAGE_NAME}"
+    sh "make docker_build $IMAGE_NAME"
 }
 
 def trivyScan(String IMAGE_NAME){
@@ -24,7 +24,7 @@ def trivyScan(String IMAGE_NAME){
     sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sudo sh -s -- -b /usr/local/bin'
 
     // Scan again and fail on CRITICAL vulns
-    sh "trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}"
+    sh "trivy image --severity HIGH,CRITICAL $IMAGE_NAME"
 
 }
 
