@@ -21,7 +21,7 @@ def imageBuild(String IMAGE_NAME){
 
 def trivyScan(String IMAGE_NAME){
     // Install trivy
-    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh -s -- -b /usr/local/bin'
+    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sudo sh -S -- -b /usr/local/bin'
 
     // Scan again and fail on CRITICAL vulns
     sh "trivy image --severity HIGH,CRITICAL $IMAGE_NAME"
