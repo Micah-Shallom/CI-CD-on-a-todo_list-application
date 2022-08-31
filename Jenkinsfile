@@ -54,6 +54,7 @@ pipeline{
             }
             steps{
                 script{
+                    checkout scm
                     echo "====++++Building Image++++===="
                     gv.imageBuild()
                     echo "====++++Trivy Scan Image++++===="
