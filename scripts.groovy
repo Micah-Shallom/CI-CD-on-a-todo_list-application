@@ -1,28 +1,27 @@
-def buildApp(){
-    sh "make build"
-}
+// def buildApp(){
+//     sh "make build"
+// }
 
-def auditApp(){
-    sh "make build"
-    sh "make audit"
-}
+// def auditApp(){
+//     sh "make build"
+//     sh "make audit"
+// }
 
-def testApp(){
-    sh "make test"
-}
+// def testApp(){
+//     sh "make test"
+// }
 
-def secretScan(){
-    sh "echo Scanning for credentials "
-}
+// def secretScan(){
+//     sh "echo Scanning for credentials "
+// }
 
-def imageBuild(){
-    sh "make docker_build imageName=mshallom/practicerepo:1.0"
+def imageBuild(String IMAGE_NAME){
+    sh "make docker_build ${IMAGE_NAME}"
 }
 
 def trivyScan(String IMAGE_NAME){
     // Install trivy
-    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.18.3'
-    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl > html.tpl'
+    sh 'curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sudo sh -s -- -b /usr/local/bin'
 
     // Scan again and fail on CRITICAL vulns
     sh "trivy image --severity HIGH,CRITICAL ${IMAGE_NAME}"
