@@ -16,7 +16,7 @@
 // }
 
 def imageBuild(String IMAGE_NAME){
-    sh "make docker_build $IMAGE_NAME"
+    sh "make docker_build imageName=$IMAGE_NAME"
 }
 
 def trivyScan(String IMAGE_NAME){
