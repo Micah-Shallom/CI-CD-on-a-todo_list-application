@@ -4,11 +4,13 @@ def buildApp(){
 }
 
 def auditApp(){
+    sh "apk add make"
     sh "make build"
     sh "make audit"
 }
 
 def testApp(){
+    sh "apk add make"
     sh "make test"
 }
 
@@ -17,7 +19,8 @@ def secretScan(){
 }
 
 def imageBuild(){
-        sh "make docker_build imageName=mshallom/practicerepo:1.0"
+    sh "apk add make"
+    sh "make docker_build imageName=mshallom/practicerepo:1.0"
 //     withDockerContainer(image: 'docker', toolName: 'docker') {
 //         sh "make docker_build imageName=mshallom/practicerepo:1.0"
 // }
