@@ -1,13 +1,12 @@
 def gv
 
 pipeline{
-//    agent {
-//         docker {
-//             image 'node:16.13.1-alpine'
-//             args '-u root --privileged'
-//         }
-//     }
-    agent none
+   agent {
+        docker {
+            image 'node:16.13.1-alpine'
+            args '-u root --privileged'
+        }
+    }
     stages{
         stage("init"){
             steps{
@@ -20,11 +19,6 @@ pipeline{
         }
 
         stage("building application"){
-            agent {
-                docker {
-                    image 'node:16.13.1-alpine'
-            }
-        }
             steps{
                 script{
                     echo "====++++Building Application++++===="
@@ -46,11 +40,6 @@ pipeline{
             }
         }
         stage("testing application"){
-            agent {
-                docker {
-                    image 'node:16.13.1-alpine'
-            }
-        }
             steps{
                 script{
                     echo "====++++Testing Application++++===="
@@ -67,7 +56,12 @@ pipeline{
             }
         }
         stage("Building and Testing Image"){
-            
+            agent {
+                docker {
+                    image 'docker:latest'
+                    args '-u root --privileged'
+                }
+    }
             steps{
                 script{
                     echo "====++++Building Image++++===="
