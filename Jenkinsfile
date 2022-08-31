@@ -2,6 +2,9 @@ def gv
 
 pipeline{
     agent any
+    environment{
+        IMAGE_NAME= "mshallom/practicerepo:1.0"
+    }
     stages{
         stage("init"){
             steps{
@@ -55,7 +58,7 @@ pipeline{
                     echo "====++++Building Image++++===="
                     gv.imageBuild()
                     echo "====++++Trivy Scan Image++++===="
-                    gv.trivyScan()
+                    gv.trivyScan(env.IMAGE_NAME)
                     echo "====++++Push Image++++===="
                     gv.pushImageToHub()
                 }
