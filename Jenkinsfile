@@ -7,15 +7,15 @@ pipeline{
 //             args '-u root --privileged'
 //         }
 //     }
-    agent none
+    agent any
     stages{
         stage("init"){
-            agent {
-                docker {
-                    image 'node:16.13.1-alpine'
-                    args '-u root --privileged'
-                }
-            }
+            // agent {
+            //     docker {
+            //         image 'node:16.13.1-alpine'
+            //         args '-u root --privileged'
+            //     }
+            // }
             
             steps{
                 echo "========executing app initialization========"
