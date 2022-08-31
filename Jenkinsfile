@@ -27,11 +27,6 @@ pipeline{
             }
         }
         stage("auditing application"){
-            agent {
-                docker {
-                    image 'node:16.13.1-alpine'
-            }
-        }
             steps{
                 script{
                     echo "====++++Auditing Application++++===="
