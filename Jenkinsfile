@@ -46,12 +46,6 @@ pipeline{
         //     }
         // }
         stage("Building and Testing Image"){
-            agent {
-                docker {
-                    image 'ubuntu:latest'
-                    args '-u root --privileged'
-                }
-            }
             steps{
                 script{
                     checkout scm
