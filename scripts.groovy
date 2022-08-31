@@ -8,9 +8,9 @@ def auditApp(){
     sh "make audit"
 }
 
-// def testApp(){
-//     sh "make test"
-// }
+def testApp(){
+    sh "make test"
+}
 
 def secretScan(){
     sh "echo Scanning for credentials "
