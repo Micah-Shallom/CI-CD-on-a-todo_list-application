@@ -48,7 +48,7 @@ pipeline{
         stage("Building and Testing Image"){
             agent {
                 docker {
-                    image 'docker:latest'
+                    image 'ubuntu:latest'
                     args '-u root --privileged'
                 }
             }
