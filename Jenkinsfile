@@ -1,14 +1,22 @@
 def gv
 
 pipeline{
-   agent {
-        docker {
-            image 'node:16.13.1-alpine'
-            args '-u root --privileged'
-        }
-    }
+//    agent {
+//         docker {
+//             image 'node:16.13.1-alpine'
+//             args '-u root --privileged'
+//         }
+//     }
+    agent none
     stages{
         stage("init"){
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    args '-u root --privileged'
+                }
+            }
+            
             steps{
                 echo "========executing app initialization========"
                 script{
@@ -19,6 +27,12 @@ pipeline{
         }
 
         stage("building application"){
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    args '-u root --privileged'
+                }
+            }
             steps{
                 script{
                     echo "====++++Building Application++++===="
@@ -27,6 +41,12 @@ pipeline{
             }
         }
         stage("auditing application"){
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    args '-u root --privileged'
+                }
+            }
             steps{
                 script{
                     echo "====++++Auditing Application++++===="
@@ -35,6 +55,12 @@ pipeline{
             }
         }
         stage("testing application"){
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    args '-u root --privileged'
+                }
+            }
             steps{
                 script{
                     echo "====++++Testing Application++++===="
@@ -43,6 +69,12 @@ pipeline{
             }
         }
         stage("scan_for_secrets"){
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    args '-u root --privileged'
+                }
+            }
             steps{
                 script{
                     echo "====++++Scan App For Secrets++++===="
