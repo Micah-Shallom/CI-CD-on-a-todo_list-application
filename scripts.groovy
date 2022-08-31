@@ -17,10 +17,8 @@ def secretScan(){
 }
 
 def imageBuild(){
-    sh "make docker_build imageName=mshallom/practicerepo:1.0"
-//     withDockerContainer(image: 'docker', toolName: 'docker') {
-//         sh "make docker_build imageName=mshallom/practicerepo:1.0"
-// }
+    sh "docker build mshallom/practicerepo:1.0 ."
+    // sh "make docker_build imageName=mshallom/practicerepo:1.0"
 }
 
 def trivyScan(){
