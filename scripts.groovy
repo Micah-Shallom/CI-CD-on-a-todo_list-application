@@ -64,11 +64,9 @@ def pushImageToHub(){
 }
 
 def deployInfrastructure(){
-    sh """
-        make init
-        make plan
-        make apply
-    """
+    sh "make init"
+    sh "make plan"
+    sh "make apply"
 
     instance_ip = sh(returnStdout: true, script: "terraform output ec2_public_ip").trim()
     instance_key_name = sh(returnStdout: true, script: "terraform output key_name").trim()
