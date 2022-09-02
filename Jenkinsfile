@@ -63,7 +63,7 @@ pipeline{
             steps {
                 script {
                     def scannerHome = tool 'SonarQubeScanner-4.7.0';
-                    withSonarQubeEnv('sonarqube') {
+                    withSonarQubeEnv('sq1') {
                         sh "${tool("SonarQubeScanner-4.7.0")}/bin/sonar-scanner -Dsonar.projectKey=devops-accelerate -Dsonar.projectName=devops-accelerate"
                     }
                 }
