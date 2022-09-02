@@ -61,20 +61,20 @@ pipeline{
         //         }
         //     }
         // }
-        stage('SonarQube analysis'){
-            steps {
-                script {
-                    // gv.sonarAnalysis()
-                }
-            }
-    }
-        stage("Quality gate"){
-            steps {
-                script {
-                    // gv.qualityGate()
-                }
-            }
-        }
+    //     stage('SonarQube analysis'){
+    //         steps {
+    //             script {
+    //                 gv.sonarAnalysis()
+    //             }
+    //         }
+    // }
+        // stage("Quality gate"){
+        //     steps {
+        //         script {
+        //             // gv.qualityGate()
+        //         }
+        //     }
+        // }
 
         stage("Building and Testing Image"){
             steps{
