@@ -18,63 +18,63 @@ pipeline{
             }
         }
 
-        // stage("building application"){
-        //     steps{
-        //         script{
-        //             echo "====++++Building Application++++===="
-        //             gv.buildApp()
-        //         }
-        //     }
-        // }
+        stage("building application"){
+            steps{
+                script{
+                    echo "====++++Building Application++++===="
+                    gv.buildApp()
+                }
+            }
+        }
 
-        // stage("auditing application"){
-        //     steps{
-        //         script{
-        //             echo "====++++Auditing Application++++===="
-        //             gv.auditApp()
-        //         }
-        //     }
-        // }
+        stage("auditing application"){
+            steps{
+                script{
+                    echo "====++++Auditing Application++++===="
+                    gv.auditApp()
+                }
+            }
+        }
 
-        // stage("testing application"){
-        //     steps{
-        //         script{
-        //             echo "====++++Testing Application++++===="
-        //             gv.testApp()
-        //         }
-        //     }
-        // }
+        stage("testing application"){
+            steps{
+                script{
+                    echo "====++++Testing Application++++===="
+                    gv.testApp()
+                }
+            }
+        }
 
-        // stage("scan_for_secrets"){
-        //     steps{
-        //         script{
-        //             echo "====++++Scan App For Secrets++++===="
-        //             gv.secretScan()
-        //         }
-        //     }
-        // }
-        // stage("static_code_analysis"){
-        //     steps{
-        //         script{
-        //             echo "====++++SonarQube Scan++++===="
-        //             gv.sonarScan()
-        //         }
-        //     }
-        // }
-    //     stage('SonarQube analysis'){
-    //         steps {
-    //             script {
-    //                 gv.sonarAnalysis()
-    //             }
-    //         }
-    // }
-        // stage("Quality gate"){
-        //     steps {
-        //         script {
-        //             // gv.qualityGate()
-        //         }
-        //     }
-        // }
+        stage("scan_for_secrets"){
+            steps{
+                script{
+                    echo "====++++Scan App For Secrets++++===="
+                    gv.secretScan()
+                }
+            }
+        }
+        stage("static_code_analysis"){
+            steps{
+                script{
+                    echo "====++++SonarQube Scan++++===="
+                    gv.sonarScan()
+                }
+            }
+        }
+        stage('SonarQube analysis'){
+            steps {
+                script {
+                    gv.sonarAnalysis()
+                }
+            }
+    }
+        stage("Quality gate"){
+            steps {
+                script {
+                    gv.qualityGate()
+                }
+            }
+        }
 
         stage("Building and Testing Image"){
             steps{
@@ -82,7 +82,7 @@ pipeline{
                     echo "====++++Building Image++++===="
                     gv.imageBuild(env.IMAGE_NAME)
                     echo "====++++Trivy Scan Image++++===="
-                    // gv.trivyScan(env.IMAGE_NAME)
+                    gv.trivyScan(env.IMAGE_NAME)
                     echo "====++++Push Image++++===="
                     gv.pushImageToHub()
                 }
