@@ -1,4 +1,6 @@
 def gv
+def instance_ip
+def instance_key_name
 
 pipeline{
     agent any
@@ -59,24 +61,17 @@ pipeline{
         //         }
         //     }
         // }
-        stage('SonarQube analysis') {
+        stage('SonarQube analysis'){
             steps {
                 script {
-                    def scannerHome = tool 'SonarQubeScanner-4.7.0';
-                    withSonarQubeEnv('sq1') {
-                        sh "${tool("SonarQubeScanner-4.7.0")}/bin/sonar-scanner -Dsonar.projectKey=devops-accelerate -Dsonar.projectName=devops-accelerate"
-                    }
+                    // gv.sonarAnalysis()
                 }
             }
     }
-        stage("Quality gate") {
+        stage("Quality gate"){
             steps {
                 script {
-                    def qualitygate = waitForQualityGate()
-                    sleep(10)
-                        if (qualitygate.status != "OK") {
-                            waitForQualityGate abortPipeline: true
-                        }
+                    // gv.qualityGate()
                 }
             }
         }
@@ -93,6 +88,22 @@ pipeline{
                 }
             }
         }
+
+        stage("Setting up infrastructure"){
+            steps{
+                script{
+                    gv.deployInfrastructure()
+                }
+            }
+        }
+        stage("Deploying Docker Compose"){
+            steps{
+                script{
+                    echo "====++++Deploying Docker Compose++++===="
+                    gv.deployScript()
+                }
+            }
+        }
     }
 
     post{
@@ -101,9 +112,15 @@ pipeline{
         }
         success{
             echo "========pipeline executed successfully ========"
+            script {
+                sh "docker logout"
+            }
         }
         failure{
             echo "========pipeline execution failed========"
+            script{
+                sh "terraform destroy"
+            }
         }
     }
 }

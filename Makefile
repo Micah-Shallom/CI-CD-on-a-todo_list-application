@@ -15,6 +15,15 @@ docker_build:
 push:
 	docker push $(imageName)
 
+init:
+	terraform init
+
+plan:
+	terraform plan
+
+apply:
+	terraform apply -auto-approve
+
 compose_up:
 	docker-compose -f docker-compose.yaml up -d 
 

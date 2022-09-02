@@ -27,6 +27,20 @@
 //     }
 // }
 
+def sonarAnalysis(){
+    def scannerHome = tool 'SonarQubeScanner-4.7.0';
+    withSonarQubeEnv('sq1') {
+        sh "${tool("SonarQubeScanner-4.7.0")}/bin/sonar-scanner -Dsonar.projectKey=devops-accelerate -Dsonar.projectName=devops-accelerate"
+    }
+}
+def qualityGate(){
+    def qualitygate = waitForQualityGate()
+    sleep(10)
+    if (qualitygate.status != "OK") {
+        waitForQualityGate abortPipeline: true
+    }
+}
+
 def imageBuild(String IMAGE_NAME){
     sh "make docker_build imageName=$IMAGE_NAME"
 }
@@ -46,6 +60,27 @@ def pushImageToHub(){
     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
         sh "echo $PASS | docker login -u $USER --password-stdin"
         sh "make push imageName=mshallom/practicerepo:1.0"
+    }
+}
+
+def deployInfrastructure(){
+    sh """
+        make init
+        make plan
+        make apply
+    """
+
+    instance_ip = sh(returnStdout: true, script: "terraform output ec2_public_ip").trim()
+    instance_key_name = sh(returnStdout: true, script: "terraform output key_name").trim()
+}
+
+def deployScript(){
+    def shellCMD = "bash ./command.sh"
+    def ec2Instance = "ec2-user@${instance_ip}"
+    sshagent(["${instance_key_name}"]) {
+        sh "scp command.sh ${ec2Instance}:/home/ec2-user"
+        sh "scp docker-compose.yaml ${ec2Instance}:/home/ec2-user"
+        sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCMD}"
     }
 }
 

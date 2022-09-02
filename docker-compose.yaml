@@ -1,7 +1,7 @@
 version: '3'
 services:
   my-app:
-      image: mshallom/practicerepo:0.1.58
+      image: mshallom/practicerepo:1.0
       ports:
         - 5000:5000
       
