@@ -64,6 +64,11 @@ def pushImageToHub(){
 }
 
 def deployInfrastructure(){
+    sh """
+        sudo yum install -y yum-utils
+        sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+        sudo yum -y install terraform
+    """
     sh "make init"
     sh "make plan"
     sh "make apply"

@@ -128,6 +128,15 @@ resource "aws_instance" "amazon-server" {
     }
 }
 
+resource "aws_s3_bucket" "state-bucket" {
+  bucket = "state-bucket"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+}
+
 output "aws_ami_id" {
     value = data.aws_ami.amazon-ami.id
 }
