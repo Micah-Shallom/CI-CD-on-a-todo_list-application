@@ -51,6 +51,35 @@ pipeline{
         //         }
         //     }
         // }
+        // stage("static_code_analysis"){
+        //     steps{
+        //         script{
+        //             echo "====++++SonarQube Scan++++===="
+        //             gv.sonarScan()
+        //         }
+        //     }
+        // }
+        stage('SonarQube analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarQubeScanner-4.7.0';
+                    withSonarQubeEnv('sonarqube') {
+                        sh "${tool("SonarQubeScanner-4.7.0")}/bin/sonar-scanner -Dsonar.projectKey=devops-accelerate -Dsonar.projectName=devops-accelerate"
+                    }
+                }
+            }
+    }
+        stage("Quality gate") {
+            steps {
+                script {
+                    def qualitygate = waitForQualityGate()
+                    sleep(10)
+                        if (qualitygate.status != "OK") {
+                            waitForQualityGate abortPipeline: true
+                        }
+                }
+            }
+        }
 
         stage("Building and Testing Image"){
             steps{
@@ -58,7 +87,7 @@ pipeline{
                     echo "====++++Building Image++++===="
                     gv.imageBuild(env.IMAGE_NAME)
                     echo "====++++Trivy Scan Image++++===="
-                    gv.trivyScan(env.IMAGE_NAME)
+                    // gv.trivyScan(env.IMAGE_NAME)
                     echo "====++++Push Image++++===="
                     gv.pushImageToHub()
                 }
